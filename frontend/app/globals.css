@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  /* === Colors: Digital Sacred Space === */
+  --color-void: #050508;
+  --color-ink: #0D0D14;
+  --color-veil: #13131E;
+  --color-mist: #1E1E2E;
+  --color-silver: #8B8FA8;
+  --color-pearl: #C8CADD;
+  --color-light: #E8EAF6;
+  --color-arcane: #7C6FCD;
+  --color-arcane-dim: #4A4580;
+  --color-glow: #9D8FE0;
+  --color-upright: #6EC99F;
+  --color-reversed: #E07A7A;
+  --color-gold: #D4A843;
+
+  /* === Font Families === */
+  --font-serif: 'EB Garamond', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* === Animations === */
+  --animate-card-flip: cardFlip 0.6s ease-in-out;
+  --animate-fade-in: fadeIn 0.8s ease-out;
+  --animate-float: float 3s ease-in-out infinite;
+
+  /* === Keyframes === */
+  @keyframes cardFlip {
+    0% { transform: rotateY(0deg); }
+    50% { transform: rotateY(90deg); }
+    100% { transform: rotateY(0deg); }
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+}
+
+/* === Base Styles === */
+body {
+  background-color: #050508;
+  color: #E8EAF6;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* === Typography Scale === */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+p {
+  line-height: 1.75;
+}
+
+/* === Serif Typography Enhancements === */
+.font-serif {
+  font-feature-settings: "liga" 1, "kern" 1;
+  letter-spacing: 0.01em;
+}
+
+/* === Scrollbar Styling === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D0D14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E1E2E;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4A4580;
+}
+
+/* === Focus Ring === */
+*:focus-visible {
+  outline: 2px solid #7C6FCD;
+  outline-offset: 2px;
+}
+
+/* === Selection === */
+::selection {
+  background-color: #4A4580;
+  color: #E8EAF6;
+}

@@ -1,0 +1,145 @@
+[
+  {
+    "card_number": 0,
+    "name": "The Fool",
+    "suit": "major_arcana",
+    "arcana": "major",
+    "element": "spirit",
+    "name_vi": "Kẻ Ngốc",
+    "astro_decan": null,
+    "zodiac_mode": null,
+    "numerology_value": 0,
+    "image_url": null,
+    "metadata_json": {
+      "tavily_answer": "The Fool (0) represents new beginnings, spontaneity, and a free spirit. It is the first card of the Major Arcana and symbolizes a journey about to begin. Upright, it suggests optimism, freedom, and adventure. Reversed, it warns of recklessness, risk-taking without forethought, or naivety.",
+      "tavily_results": [
+        {
+          "title": "The Fool Tarot Card Meaning - Biddy Tarot",
+          "url": "https://www.biddytarot.com/tarot-card-meanings/major-arcana/fool/",
+          "content": "The Fool is numbered 0 in the Major Arcana. Upright meanings: new beginnings, innocence, spontaneity, a free spirit. Reversed meanings: holding back, recklessness, risk-taking. Keywords: beginnings, innocence, randomness, open-mindedness. Element: Air/Spirit. Planet: Uranus. Numerology: 0 (infinite potential).",
+          "score": 0.92
+        },
+        {
+          "title": "The Fool — Tarot Meaning & Astrology",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-fool-meaning",
+          "content": "The Fool card corresponds to the element of Air and the planet Uranus. In Kabbalah it is associated with the path of Aleph (Ox). Its astrological correspondence is Uranus — a planet of sudden change and liberation. Elemental Dignity: Spirit / Air hybrid.",
+          "score": 0.87
+        },
+        {
+          "title": "The Fool Numerology & Symbolism",
+          "url": "https://tarotprophet.com/the-fool-tarot/",
+          "content": "Numerologically, 0 represents unlimited potential, emptiness, and the void before creation. The Fool stands at the edge of a cliff, symbolising the leap of faith required to begin a journey. His white rose represents purity and freedom from lower desires.",
+          "score": 0.81
+        }
+      ],
+      "query_used": "The Fool tarot card meaning upright reversed keywords astrology numerology",
+      "upright_keywords": [
+        "new beginnings",
+        "innocence",
+        "spontaneity",
+        "free spirit",
+        "optimism",
+        "adventure",
+        "leap of faith"
+      ],
+      "reversed_keywords": [
+        "recklessness",
+        "naivety",
+        "holding back",
+        "poor judgment",
+        "risk without forethought"
+      ],
+      "astrology": {
+        "planet": "Uranus",
+        "element": "Spirit / Air",
+        "kabbalah_path": "Aleph",
+        "kabbalah_number": 0
+      },
+      "elemental_dignity": {
+        "friendly_with": ["air", "fire"],
+        "hostile_to": ["earth"],
+        "neutral_with": ["water"]
+      },
+      "timing": {
+        "zodiac_mode": null,
+        "decan": null,
+        "timing_unit": "sudden / unexpected",
+        "notes": "Major Arcana timing is non-linear; The Fool often signals an imminent start."
+      },
+      "mock": true,
+      "mock_note": "Dữ liệu giả lập cho Phase 1 development. Thay bằng kết quả thực từ fetch_tavily_data.py."
+    }
+  },
+  {
+    "card_number": 1,
+    "name": "The Magician",
+    "suit": "major_arcana",
+    "arcana": "major",
+    "element": "spirit",
+    "name_vi": "Nhà Ảo Thuật",
+    "astro_decan": null,
+    "zodiac_mode": null,
+    "numerology_value": 1,
+    "image_url": null,
+    "metadata_json": {
+      "tavily_answer": "The Magician (I) is the first numbered card of the Major Arcana and represents skill, willpower, and the ability to manifest desires. Upright, it signifies resourcefulness, inspired action, and power. Reversed, it warns of manipulation, poor planning, or untapped potential.",
+      "tavily_results": [
+        {
+          "title": "The Magician Tarot Card Meaning - Biddy Tarot",
+          "url": "https://www.biddytarot.com/tarot-card-meanings/major-arcana/magician/",
+          "content": "The Magician is numbered 1 in the Major Arcana. Upright meanings: willpower, desire, being resourceful, skill, ability to manifest. Reversed meanings: manipulation, poor planning, untapped talents. Keywords: action, awareness, concentration, inspiration. Element: Air. Planet: Mercury. Numerology: 1 (new beginnings, initiative, individuality).",
+          "score": 0.95
+        },
+        {
+          "title": "The Magician — Astrology & Symbolism",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-magician-meaning",
+          "content": "The Magician corresponds to the planet Mercury — the planet of communication, intelligence, and dexterity. In Kabbalah, it is associated with the path of Beth (House). On the table before The Magician lie all four suits of the Minor Arcana (wand, cup, sword, pentacle), representing his mastery over all elements.",
+          "score": 0.90
+        },
+        {
+          "title": "The Magician Numerology & Elemental Dignities",
+          "url": "https://tarotprophet.com/the-magician-tarot/",
+          "content": "Numerologically, 1 is the number of beginnings and singularity. The Magician channels divine will (spirit) through the four elements. His right hand points to the sky (active principle), left hand points to earth (passive principle), symbolising 'As above, so below' — the Hermetic maxim.",
+          "score": 0.85
+        }
+      ],
+      "query_used": "The Magician tarot card meaning upright reversed keywords astrology numerology",
+      "upright_keywords": [
+        "willpower",
+        "manifestation",
+        "resourcefulness",
+        "skill",
+        "inspired action",
+        "concentration",
+        "power"
+      ],
+      "reversed_keywords": [
+        "manipulation",
+        "poor planning",
+        "untapped potential",
+        "illusion",
+        "deception",
+        "trickery"
+      ],
+      "astrology": {
+        "planet": "Mercury",
+        "element": "Air / Spirit",
+        "kabbalah_path": "Beth",
+        "kabbalah_number": 1
+      },
+      "elemental_dignity": {
+        "friendly_with": ["air", "fire"],
+        "hostile_to": ["earth"],
+        "neutral_with": ["water"]
+      },
+      "timing": {
+        "zodiac_mode": null,
+        "decan": null,
+        "timing_unit": "days to weeks",
+        "notes": "Mercury energy = swift communication and short timelines. Actions taken now manifest quickly."
+      },
+      "mock": true,
+      "mock_note": "Dữ liệu giả lập cho Phase 1 development. Thay bằng kết quả thực từ fetch_tavily_data.py."
+    }
+  }
+]

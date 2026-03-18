@@ -1,0 +1,133 @@
+# ============================================================
+# Tarot Web App — Docker Compose
+# Phase 4: Production Orchestration
+#
+# Services:
+#   postgres  — PostgreSQL 15 database
+#   backend   — FastAPI (Python 3.13)
+#   frontend  — Next.js 14
+#   nginx     — Reverse proxy + rate limiting
+#
+# Usage:
+#   cp .env.docker .env
+#   docker compose up --build -d
+#   docker compose logs -f
+# ============================================================
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: tarot_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-tarot_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tarot_pass}
+      POSTGRES_DB:       ${POSTGRES_DB:-tarot_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"           # expose chỉ trong dev; bỏ port này trong production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tarot_user} -d ${POSTGRES_DB:-tarot_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - tarot_net
+
+  # ── Backend (FastAPI) ────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tarot_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL:    postgresql+asyncpg://${POSTGRES_USER:-tarot_user}:${POSTGRES_PASSWORD:-tarot_pass}@postgres:5432/${POSTGRES_DB:-tarot_db}
+      TAVILY_API_KEY:  ${TAVILY_API_KEY:-}
+      ANU_QRNG_URL:    ${ANU_QRNG_URL:-https://qrng.anu.edu.au/API/jsonI.php}
+      SECRET_KEY:      ${SECRET_KEY:-change-this-in-production}
+      APP_ENV:         ${APP_ENV:-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8000"                # chỉ expose nội bộ; nginx sẽ proxy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - tarot_net
+    volumes:
+      - backend_logs:/app/logs
+
+  # ── Frontend (Next.js) ───────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tarot_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://nginx:80}
+      NODE_ENV: production
+    depends_on:
+      backend:
+        condition: service_healthy
+    expose:
+      - "3000"                # chỉ expose nội bộ; nginx sẽ proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - tarot_net
+
+  # ── Nginx (Reverse Proxy) ────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: tarot_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"               # HTTP
+      # - "443:443"           # HTTPS — bỏ comment khi có SSL cert
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./nginx/certs:/etc/nginx/certs:ro   # SSL certs (Phase sau)
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - tarot_net
+
+
+# ── Volumes ──────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+    name: tarot_postgres_data
+  backend_logs:
+    driver: local
+    name: tarot_backend_logs
+
+
+# ── Networks ─────────────────────────────────────────────────
+networks:
+  tarot_net:
+    driver: bridge
+    name: tarot_network

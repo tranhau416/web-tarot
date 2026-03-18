@@ -1,0 +1,34 @@
+# ============================================================
+# Tarot Web App - Backend Dependencies
+# Phase 1: Foundation
+# ============================================================
+
+# --- Web Framework ---
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# --- Database (Async) ---
+sqlalchemy[asyncio]==2.0.40
+asyncpg==0.30.0
+alembic==1.14.1
+
+# --- HTTP Client (Quantum Engine & External APIs) ---
+httpx==0.27.0
+
+# --- Tavily Search API ---
+tavily-python==0.3.3
+
+# --- Anthropic Claude AI ---
+anthropic
+
+# --- Google Gemini AI ---
+google-genai
+
+# --- Data Validation & Settings ---
+pydantic==2.11.1
+pydantic-settings==2.8.1
+python-dotenv==1.0.1
+
+# --- Utilities ---
+python-multipart==0.0.9
+orjson==3.10.16
