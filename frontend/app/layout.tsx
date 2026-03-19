@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import LegalGate from "./components/LegalGate";
+import NavBar from "./components/NavBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,33 +17,33 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="color-scheme" content="dark" />
+        <meta name="theme-color" content="#02020A" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* Cinzel added for ritual headers per spec §3 */}
         <link
-          href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="preload"
+          as="style"
+          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
       </head>
       <body className="bg-void text-light antialiased min-h-screen">
         <LegalGate>
-          {/* Navigation */}
-          <nav className="fixed top-0 left-0 right-0 z-40 border-b border-mist bg-void/80 backdrop-blur-sm">
-            <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-              <Link
-                href="/"
-                className="text-pearl hover:text-glow transition-colors duration-200 font-serif text-xl tracking-wide"
-              >
-                🔮 Tarot
-              </Link>
-            </div>
-          </nav>
+          {/* NavBar is a Client Component — handles scroll detection internally */}
+          <NavBar />
 
-          {/* Main content with top padding for fixed nav */}
-          <main className="pt-14">{children}</main>
+          {/* pt-12 = 48px — matches fixed nav height */}
+          <div className="pt-12">{children}</div>
         </LegalGate>
       </body>
     </html>
