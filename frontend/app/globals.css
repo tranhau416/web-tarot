@@ -1,52 +1,153 @@
 @import "tailwindcss";
 
 @theme {
-  /* === Colors: Digital Sacred Space === */
-  --color-void: #050508;
-  --color-ink: #0D0D14;
-  --color-veil: #13131E;
-  --color-mist: #1E1E2E;
-  --color-silver: #8B8FA8;
-  --color-pearl: #C8CADD;
-  --color-light: #E8EAF6;
-  --color-arcane: #7C6FCD;
-  --color-arcane-dim: #4A4580;
-  --color-glow: #9D8FE0;
-  --color-upright: #6EC99F;
-  --color-reversed: #E07A7A;
-  --color-gold: #D4A843;
+  /* === Deep Void (backgrounds) === */
+  --color-void:         #02020A;
+  --color-abyss:        #06060F;
+  --color-ink:          #0D0D18;
+  --color-veil:         #14141F;
+  --color-mist:         #1E1E30;
+
+  /* === Candlelight (warm accent family) === */
+  --color-flame:        #E8A045;
+  --color-ember:        #C4742A;
+  --color-gold:         #D4A843;
+  --color-parchment:    #F0E6C8;
+  --color-wax:          #8B6A3A;
+
+  /* === Arcane (purple family) === */
+  --color-arcane:       #7C6FCD;
+  --color-arcane-dim:   #4A4580;
+  --color-glow:         #9D8FE0;
+  --color-ritual:       #5B3F8C;
+
+  /* === Oracle (text) === */
+  --color-light:        #E8EAF6;
+  --color-pearl:        #C8CADD;
+  --color-silver:       #8B8FA8;
+
+  /* === Orientation === */
+  --color-upright:      #6EC99F;
+  --color-reversed:     #E07A7A;
+
+  /* === Ritual Crimson (error / warning) === */
+  --color-crimson:      #8B2A2A;
+  --color-crimson-glow: #E07A7A;
 
   /* === Font Families === */
-  --font-serif: 'EB Garamond', Georgia, serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-cinzel: 'Cinzel', 'Times New Roman', serif;
+  --font-serif:  'EB Garamond', Georgia, serif;
+  --font-sans:   'Inter', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
 
-  /* === Animations === */
-  --animate-card-flip: cardFlip 0.6s ease-in-out;
-  --animate-fade-in: fadeIn 0.8s ease-out;
-  --animate-float: float 3s ease-in-out infinite;
+  /* === Gradients === */
+  --gradient-altar:  radial-gradient(ellipse 80% 50% at 50% 80%, rgba(124,111,205,0.18) 0%, rgba(212,168,67,0.08) 40%, transparent 70%);
+  --gradient-card:   linear-gradient(160deg, #14141F 0%, #0D0D18 60%, #06060F 100%);
+  --gradient-scroll: linear-gradient(180deg, #0D0D18 0%, #06060F 100%);
+  --gradient-seal:   conic-gradient(from 0deg, #7C6FCD, #D4A843, #7C6FCD);
 
-  /* === Keyframes === */
+  /* === Glow Box-Shadows === */
+  --glow-arcane: 0 0 20px rgba(124,111,205,0.6), 0 0 40px rgba(124,111,205,0.2);
+  --glow-flame:  0 0 20px rgba(232,160,69,0.5),  0 0 40px rgba(232,160,69,0.15);
+
+  /* === Animation Utilities === */
+  --animate-card-flip:      cardFlip 0.6s ease-in-out;
+  --animate-fade-in:        fadeIn 0.8s ease-out;
+  --animate-float:          float 3s ease-in-out infinite;
+  --animate-candle-flicker: candleFlicker 3s ease-in-out infinite;
+  --animate-ember-float:    emberFloat 4s ease-out infinite;
+  --animate-seal-rotate:    sealRotate 20s linear infinite;
+  --animate-sigil-pulse:    sigilPulse 4s ease-in-out infinite;
+  --animate-phase-fade-in:  phaseFadeIn 0.6s ease-out;
+  --animate-inscribe:       inscribe 1.2s ease-out;
+  --animate-card-conjure:   cardConjure 0.7s cubic-bezier(0.22,1,0.36,1);
+  --animate-scroll-unfurl:  scrollUnfurl 0.8s ease-out;
+
+  /* ---- Keyframes ---- */
+
+  /* Original: 3D card flip */
   @keyframes cardFlip {
-    0% { transform: rotateY(0deg); }
-    50% { transform: rotateY(90deg); }
+    0%   { transform: rotateY(0deg); }
+    50%  { transform: rotateY(90deg); }
     100% { transform: rotateY(0deg); }
   }
 
+  /* Original: general fade-in with upward lift */
   @keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(12px); }
+    0%   { opacity: 0; transform: translateY(12px); }
     100% { opacity: 1; transform: translateY(0); }
   }
 
+  /* Original: gentle vertical float */
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
+    50%       { transform: translateY(-6px); }
+  }
+
+  /* Candle flicker — subtle opacity + scale oscillation on ambient light */
+  @keyframes candleFlicker {
+    0%, 100% { opacity: 0.7;  transform: scale(1, 1);        }
+    25%       { opacity: 0.85; transform: scale(0.98, 1.02); }
+    50%       { opacity: 0.65; transform: scale(1.02, 0.97); }
+    75%       { opacity: 0.78; transform: scale(0.99, 1.01); }
+  }
+
+  /* Ember particle — rises and fades out of existence */
+  @keyframes emberFloat {
+    0%   { transform: translateY(0)      translateX(0)    scale(1);   opacity: 0.6; }
+    30%  { transform: translateY(-30px)  translateX(8px)  scale(0.8); opacity: 0.8; }
+    60%  { transform: translateY(-70px)  translateX(-5px) scale(0.5); opacity: 0.4; }
+    100% { transform: translateY(-120px) translateX(3px)  scale(0);   opacity: 0; }
+  }
+
+  /* Oracle scroll unfurl — container expands to reveal text */
+  @keyframes scrollUnfurl {
+    0%   { opacity: 0; transform: translateY(-8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Card conjure — card materializes from darkness with blur */
+  @keyframes cardConjure {
+    0%   { opacity: 0;    transform: translateY(24px) scale(0.92); }
+    60%  { opacity: 0.85; transform: translateY(-3px) scale(1.01); }
+    100% { opacity: 1;    transform: translateY(0)    scale(1);    }
+  }
+
+  /* Seal rotate — invocation seal slowly rotates when idle */
+  @keyframes sealRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Sigil pulse — breathing glow / scale */
+  @keyframes sigilPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.05); }
+  }
+
+  /* Phase fade — full-screen phase transition entry */
+  @keyframes phaseFadeIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Inscription — fades in with upward lift (letter-spacing removed: not compositor-safe) */
+  @keyframes inscribe {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 }
 
-/* === Base Styles === */
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+}
+
 body {
-  background-color: #050508;
+  background-color: #02020A;
   color: #E8EAF6;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 16px;
@@ -56,9 +157,9 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* === Typography Scale === */
+/* === Heading defaults === */
 h1, h2, h3, h4, h5, h6 {
-  line-height: 1.25;
+  line-height: 1.2;
   letter-spacing: -0.01em;
 }
 
@@ -66,35 +167,171 @@ p {
   line-height: 1.75;
 }
 
-/* === Serif Typography Enhancements === */
+/* ============================================================
+   TYPOGRAPHY ENHANCEMENTS
+   ============================================================ */
+
+.font-cinzel {
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  font-feature-settings: "kern" 1;
+  letter-spacing: 0.05em;
+}
+
 .font-serif {
   font-feature-settings: "liga" 1, "kern" 1;
   letter-spacing: 0.01em;
 }
 
-/* === Scrollbar Styling === */
+/* ============================================================
+   SCROLLBAR STYLING
+   ============================================================ */
+
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #0D0D14;
+  background: #06060F;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #1E1E2E;
+  background: #1E1E30;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #4A4580;
 }
 
-/* === Focus Ring === */
+/* ============================================================
+   FOCUS RING — flame gold (more visible on dark backgrounds)
+   ============================================================ */
+
 *:focus-visible {
-  outline: 2px solid #7C6FCD;
+  outline: 2px solid #E8A045;
   outline-offset: 2px;
 }
 
-/* === Selection === */
+/* Prevent 300ms tap delay and accidental zoom on interactive elements */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* ============================================================
+   SELECTION
+   ============================================================ */
+
 ::selection {
   background-color: #4A4580;
   color: #E8EAF6;
+}
+
+/* ============================================================
+   GLOW TEXT EFFECTS
+   ============================================================ */
+
+/* Glowing inscription — active/selected headings, oracle text */
+.text-glow-arcane {
+  color: #9D8FE0;
+  text-shadow: 0 0 20px rgba(124,111,205,0.7), 0 0 40px rgba(124,111,205,0.3);
+}
+
+/* Flame text — CTA labels, warm accent */
+.text-glow-flame {
+  color: #E8A045;
+  text-shadow: 0 0 15px rgba(232,160,69,0.6);
+}
+
+/* Etched text — very muted, feels carved into stone */
+.text-etched {
+  color: rgba(200,202,221,0.65);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-family: 'Cinzel', serif;
+}
+
+/* Phase label — ceremony stage indicator */
+/* Contrast note: silver at 0.85 opacity on void (#02020A) ≈ 4.8:1 — passes AA */
+.text-phase {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(139,143,168,0.85);
+}
+
+/* ============================================================
+   GLOW BOX SHADOWS
+   ============================================================ */
+
+.glow-arcane {
+  box-shadow: 0 0 20px rgba(124,111,205,0.6), 0 0 40px rgba(124,111,205,0.2);
+}
+
+.glow-flame {
+  box-shadow: 0 0 20px rgba(232,160,69,0.5), 0 0 40px rgba(232,160,69,0.15);
+}
+
+.seal-rotate-svg {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ============================================================
+   REDUCED MOTION OVERRIDES
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Ambient / infinite loops — disable entirely, preserve opacity */
+  .animate-candle-flicker,
+  .animate-ember-float,
+  .animate-seal-rotate,
+  .animate-sigil-pulse {
+    animation: none !important;
+    opacity: 0.7;
+  }
+
+  /* Phase / entrance animations — instant reveal, no motion */
+  .animate-card-conjure,
+  .animate-phase-fade-in,
+  .animate-scroll-unfurl,
+  .animate-inscribe {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  /* Streaming cursor — disable blink */
+  .animate-pulse {
+    animation: none !important;
+    opacity: 0.8;
+  }
+
+  /* Card flip — disable 3D rotation */
+  .animate-card-flip,
+  [class*="animate-[cardFlip"] {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  /* Float animation */
+  .animate-float {
+    animation: none !important;
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE HELPERS
+   ============================================================ */
+
+/* Prevent layout shift for card grid on async load */
+.card-grid-placeholder {
+  min-height: 220px;
+}
+
+/* Ensure long card names don't overflow on small screens */
+.font-cinzel {
+  overflow-wrap: break-word;
+  word-break: break-word;
 }

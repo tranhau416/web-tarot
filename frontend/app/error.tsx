@@ -9,7 +9,7 @@ export default function Error({ error, reset }: ErrorProps) {
   return (
     <div className="min-h-screen bg-void flex items-center justify-center px-4">
       <div className="bg-ink border border-mist rounded-2xl p-8 max-w-md w-full text-center space-y-6 animate-fade-in">
-        <div className="text-5xl select-none">⚠️</div>
+        <div className="text-5xl select-none" aria-hidden="true">⚠️</div>
         <div>
           <h2 className="font-serif text-2xl text-light mb-2">
             Something went wrong
@@ -24,8 +24,9 @@ export default function Error({ error, reset }: ErrorProps) {
           )}
         </div>
         <button
+          type="button"
           onClick={reset}
-          className="px-6 py-3 rounded-xl bg-arcane hover:bg-glow text-light font-sans font-medium transition-all duration-200 shadow-lg shadow-arcane/25"
+          className="px-6 py-3 rounded-xl bg-arcane hover:bg-glow text-light font-sans font-medium transition-[background-color,box-shadow] duration-200 shadow-lg shadow-arcane/25"
         >
           Try again
         </button>

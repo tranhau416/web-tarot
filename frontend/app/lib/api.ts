@@ -55,7 +55,8 @@ function isStreamEvent(e: unknown): e is StreamEvent {
 }
 
 export async function* streamAIReading(
-  req: DrawRequest
+  req: DrawRequest,
+  signal?: AbortSignal
 ): AsyncGenerator<StreamEvent> {
   const res = await fetch(`${BASE_URL}/api/v1/draw/ai-stream`, {
     method: "POST",
@@ -64,6 +65,7 @@ export async function* streamAIReading(
       "X-Adult-Confirmed": "true",
     },
     body: JSON.stringify(req),
+    signal,
   });
 
   if (!res.ok) {
