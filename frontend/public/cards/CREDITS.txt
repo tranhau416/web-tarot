@@ -1,0 +1,17 @@
+Rider-Waite-Smith tarot card images
+====================================
+
+Artwork:   Pamela Colman Smith (1878-1951), under the direction of
+           Arthur Edward Waite (1857-1942)
+Publisher: William Rider & Son, London, 1909 ("Pam-A" printing)
+
+Public domain: published 1909 (US), and both creators died more than
+70 years ago (life + 70 countries, including the EU and UK, since 2022).
+
+Scans:     Steve-P.org restored scans of a 1909 Pam-A deck
+           https://steve-p.org/cards/RWSa.html
+           via https://github.com/mixvlad/TarotCards (tarot/rider-waite/720px)
+Back:      original "Roses & Lilies" card back (Cover_Rare.jpg)
+
+These are NOT the 1971 U.S. Games Systems recoloured edition.
+Resized to 360px WebP by scripts/build_card_images.py.

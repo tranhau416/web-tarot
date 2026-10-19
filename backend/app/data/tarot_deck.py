@@ -21,7 +21,12 @@ Dùng `build_deck()` để lấy list[dict] sẵn sàng insert vào bảng `card
 
 from __future__ import annotations
 
+import re
 from typing import Any, Optional
+
+# Ảnh lá bài (scan RWS 1909, public domain) do frontend phục vụ tại /cards/
+# — tạo bằng scripts/build_card_images.py
+CARD_IMAGE_BASE_URL = "/cards"
 
 # ---------------------------------------------------------------------------
 # Major Arcana
@@ -305,6 +310,12 @@ def _minor_astrology(suit_key: str, rank_index: int) -> tuple[Optional[str], Opt
     return mode, f"20° {_previous_sign(sign)} – 20° {sign}"
 
 
+def card_image_filename(card: dict[str, Any]) -> str:
+    """VD: 'The Fool' (0) → '00-the-fool.webp'; 'Ace of Wands' (22) → '22-ace-of-wands.webp'."""
+    slug = re.sub(r"[^a-z0-9]+", "-", card["name"].lower()).strip("-")
+    return f"{card['card_number']:02d}-{slug}.webp"
+
+
 def build_deck() -> list[dict[str, Any]]:
     """
     Build list 78 lá bài (dict) theo đúng cột của bảng `cards`.
@@ -355,6 +366,9 @@ def build_deck() -> list[dict[str, Any]]:
                 },
             })
             number += 1
+
+    for card in deck:
+        card["image_url"] = f"{CARD_IMAGE_BASE_URL}/{card_image_filename(card)}"
 
     return deck
 

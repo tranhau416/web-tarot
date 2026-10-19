@@ -1,5 +1,7 @@
 "use client"
 
+import Image from "next/image"
+import { useState } from "react"
 import type { CardInterpretation, InterpretationResult } from "../lib/types"
 import { QUANTUM_SOURCE_LABELS } from "@/app/lib/constants"
 
@@ -37,6 +39,7 @@ export default function InterpretationPanel({
   card,
   interpretationResult,
 }: InterpretationPanelProps) {
+  const [imageFailed, setImageFailed] = useState(false)
   const isUpright = card.orientation === "upright"
   const keywords = isUpright ? card.keywords_upright : card.keywords_reversed
   const quantumSource = interpretationResult?.quantum_source ?? "os_entropy"
@@ -44,9 +47,22 @@ export default function InterpretationPanel({
   return (
     <div className="bg-ink border border-mist rounded-2xl p-4 sm:p-6 space-y-5 animate-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="font-serif text-3xl text-light leading-tight">
+      <div className="flex items-start gap-4">
+        {card.image_url && !imageFailed && (
+          <div className="relative w-20 sm:w-28 aspect-[3/5] flex-shrink-0 rounded-lg overflow-hidden border border-mist shadow-lg">
+            <Image
+              src={card.image_url}
+              alt={`${card.card_name}${isUpright ? "" : " (ngược)"}`}
+              fill
+              unoptimized
+              sizes="112px"
+              className={`object-cover ${isUpright ? "" : "rotate-180"}`}
+              onError={() => setImageFailed(true)}
+            />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-serif text-2xl sm:text-3xl text-light leading-tight">
             {card.card_name}
           </h3>
           {card.name_vi && (

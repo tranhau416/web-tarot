@@ -15,8 +15,8 @@ MỤC ĐÍCH:
   Dùng INSERT ... ON CONFLICT (name) DO UPDATE nên chạy lại bao nhiêu lần
   cũng an toàn và sẽ sửa dữ liệu cũ/thiếu.
 
-  Lưu ý: backend tự tạo bảng + seed khi khởi động nếu DB chưa đủ 78 lá,
-  nên script này chủ yếu dùng để làm mới dữ liệu hoặc ghép metadata.
+  Lưu ý: backend tự tạo bảng + đồng bộ bộ bài chuẩn mỗi lần khởi động,
+  nên script này chủ yếu dùng để ghép metadata từ file JSON.
 
 CHẠY:
   cd backend
@@ -57,8 +57,8 @@ async def main(json_file: str | None) -> None:
         print(f"[Seed] Ghép {len(overrides)} bản ghi từ {path}")
         records = merge_card_records(TAROT_DECK, overrides)
 
-    # Tạo schema nếu cần (không seed tự động — ta upsert ngay bên dưới)
-    await init_db(engine, seed_if_incomplete=False)
+    # Tạo schema nếu cần (không đồng bộ tự động — ta upsert ngay bên dưới)
+    await init_db(engine, sync_deck=False)
 
     async with engine.begin() as conn:
         written = await upsert_cards(conn, records)

@@ -80,10 +80,14 @@ function renderReading(text: string): ReactNode[] {
 export default function AIReading({ text, isWaiting, isStreaming, isDone, error }: AIReadingProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll theo nội dung mới khi đang stream
+  // Auto-scroll theo nội dung mới khi đang stream — chỉ khi người đọc đang ở
+  // gần cuối lời đọc, để không kéo trang đi khi họ đang xem lá bài phía trên.
   useEffect(() => {
-    if (isStreaming && endRef.current) {
-      endRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    const end = endRef.current;
+    if (!isStreaming || !end) return;
+    const distanceBelowViewport = end.getBoundingClientRect().top - window.innerHeight;
+    if (distanceBelowViewport < 160) {
+      end.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [text, isStreaming]);
 

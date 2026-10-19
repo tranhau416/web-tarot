@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://tarot_user:tarot_pass@localhost:5432/tarot_db"
-    # Tự tạo bảng + seed 78 lá khi khởi động nếu DB còn thiếu
+    # Tự tạo bảng + đồng bộ bộ bài chuẩn 78 lá khi khởi động
     AUTO_INIT_DB: bool = True
 
     # Tavily

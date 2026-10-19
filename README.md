@@ -10,6 +10,7 @@
 - **4 loại trải bài** — Single, Three Card, Horseshoe (7 lá), Celtic Cross (10 lá)
 - **Elemental Dignities** — Tính tương tác nguyên tố theo truyền thống Golden Dawn
 - **Bộ bài đầy đủ 78 lá** — Tên tiếng Việt, keywords thuận/ngược, nguyên tố & decan theo Golden Dawn (seed tự động)
+- **Ảnh Rider-Waite-Smith gốc 1909** — Bản scan "Pam-A" (public domain), lật từ mặt sau "Roses & Lilies", lá ngược xoay 180°
 - **Decan Timing** — Dự đoán thời gian theo Cardinal / Fixed / Mutable (Ace/Page theo mùa)
 - **AI Streaming** — Google Gemini hoặc Claude diễn giải tiếng Việt, stream từng từ qua SSE
 - **Compliance Gate** — Xác nhận 18+ bắt buộc (frontend modal + backend header check)
@@ -35,6 +36,8 @@
 ```
 .
 ├── docker-compose.yml
+├── scripts/
+│   └── build_card_images.py    # Tạo ảnh WebP lá bài từ bản scan RWS 1909
 ├── nginx/
 │   └── nginx.conf              # Reverse proxy + rate limiting
 │
@@ -65,6 +68,7 @@
 │           └── prompts/                   # System + user prompt (tiếng Việt)
 │
 └── frontend/
+    ├── public/cards/           # 78 ảnh lá bài + mặt sau (xem CREDITS.txt)
     └── app/
         ├── layout.tsx
         ├── page.tsx            # Main UI
@@ -376,8 +380,9 @@ Disclaimer pháp lý đính kèm mọi response từ `/draw`.
 
 ## 🌱 Seed dữ liệu
 
-Backend tự tạo bảng và seed bộ bài chuẩn (`app/data/tarot_deck.py`) khi khởi động nếu bảng `cards`
-chưa đủ 78 lá (tắt bằng `AUTO_INIT_DB=false`). Chạy tay khi cần làm mới dữ liệu:
+Backend tự tạo bảng và đồng bộ bộ bài chuẩn (`app/data/tarot_deck.py`) vào bảng `cards` mỗi lần
+khởi động (tắt bằng `AUTO_INIT_DB=false`). `metadata_json` được merge nên dữ liệu ghép thêm (VD: Tavily)
+không bị mất. Chạy tay khi cần:
 
 ```bash
 python seed.py                              # upsert bộ bài chuẩn 78 lá
@@ -388,6 +393,19 @@ python seed.py --file tarot_seed_data.json  # merge vào metadata_json, giữ ke
 ```
 
 > `seed.py` là idempotent — `ON CONFLICT (name) DO UPDATE`, chạy lại sẽ sửa dữ liệu cũ thay vì bỏ qua.
+
+---
+
+## 🎴 Ảnh lá bài
+
+Ảnh trong `frontend/public/cards/` là bản scan bộ **Rider-Waite-Smith in năm 1909 ("Pam-A")** của
+Pamela Colman Smith, do [Steve-P.org](https://steve-p.org/cards/RWSa.html) phục chế, lấy qua
+[mixvlad/TarotCards](https://github.com/mixvlad/TarotCards). Tác phẩm đã thuộc phạm vi công cộng
+(xuất bản 1909; tác giả mất năm 1951 → hết bảo hộ ở các nước "đời + 70 năm" từ 2022).
+Đây **không** phải bản tô màu lại năm 1971 của U.S. Games (bản đó còn bản quyền).
+
+Tạo lại ảnh: xem hướng dẫn trong `scripts/build_card_images.py`. Mỗi lá có `image_url`
+(`/cards/NN-ten-la.webp`) trong DB; frontend tự quay về mặt bài vẽ bằng CSS nếu ảnh lỗi.
 
 ---
 
