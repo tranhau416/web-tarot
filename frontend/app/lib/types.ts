@@ -14,6 +14,7 @@ export interface CardInterpretation {
   position_index: number
   card_id: number
   card_name: string
+  name_vi: string | null
   suit: string
   arcana: string
   element: Element | null
@@ -27,6 +28,7 @@ export interface CardInterpretation {
   keywords_reversed: string[]
   image_url: string | null
   raw_quantum_byte: number
+  orientation_byte: number | null
   position_label?: string
 }
 
@@ -59,6 +61,7 @@ export interface Card {
   suit: string
   arcana: string
   element: Element | null
+  astro_decan: string | null
   zodiac_mode: string | null
   numerology_value: number | null
   image_url: string | null

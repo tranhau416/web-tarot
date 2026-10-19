@@ -99,6 +99,9 @@ const CardItem = memo(function CardItem({ card, index, onSelect, isSelected }: C
                 ${isUpright ? "text-upright" : "text-reversed"}`}>
                 {card.card_name}
               </p>
+              {card.name_vi && (
+                <p className="text-silver text-xs font-sans mt-0.5">{card.name_vi}</p>
+              )}
               {card.numerology_value !== null && (
                 <p className="text-silver/70 text-xs font-mono mt-1">
                   {card.numerology_value}

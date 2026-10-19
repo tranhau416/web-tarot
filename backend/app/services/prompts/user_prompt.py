@@ -1,5 +1,12 @@
 """Build user prompt từ interpretation data."""
 from app.schemas.tarot import InterpretationResult
+from app.services.prompts.vocabulary import (
+    SPREAD_VI,
+    dignity_vi,
+    element_vi,
+    position_vi,
+    timing_vi,
+)
 
 
 def build_user_prompt(
@@ -17,37 +24,41 @@ def build_user_prompt(
 
     cards_text = ""
     for card in interpretation.cards:
-        position = card.position_label or f"Vị trí {card.position_index + 1}"
+        position = position_vi(card.position_label, card.position_index)
+        if card.position_label:
+            position = f"{position} ({card.position_label})"
         orientation_vi = "thuận" if card.orientation == "upright" else "ngược"
-        element_vi = card.element or "không xác định"
+        name = f"{card.card_name} — {card.name_vi}" if card.name_vi else card.card_name
         keywords = (
             card.keywords_upright
             if card.orientation == "upright"
             else card.keywords_reversed
         )
         keywords_str = ", ".join(keywords[:5]) if keywords else "không có"
-        timing_str = card.timing.timing_range if card.timing else "không xác định"
+        astro_str = f" | Chiêm tinh: {card.astro_decan}" if card.astro_decan else ""
 
         cards_text += (
-            f"- **{position}**: {card.card_name} ({orientation_vi}) "
-            f"| Nguyên tố: {element_vi} "
-            f"| Dignity: {card.dignity_weight:+.1f} "
-            f"| Thời gian: {timing_str} "
+            f"- **{position}**: {name} ({orientation_vi}) "
+            f"| Nguyên tố: {element_vi(card.element)}{astro_str} "
+            f"| Dignity: {card.dignity_weight:+.1f} ({dignity_vi(card.dignity_weight)}) "
+            f"| Thời gian: {timing_vi(card.timing.timing_unit, card.timing.timing_range)} "
             f"| Từ khóa: {keywords_str}\n"
         )
 
     intention_text = (
         intention.strip() if intention and intention.strip() else "Không có câu hỏi cụ thể"
     )
+    spread_text = SPREAD_VI.get(interpretation.spread_type, interpretation.spread_type)
 
     return (
         f"Câu hỏi của người hỏi: {intention_text}\n\n"
-        f"Bài trải ({interpretation.spread_type}):\n"
+        f"Bài trải: {spread_text}\n"
         f"{cards_text}\n"
         f"Thông tin tổng thể:\n"
-        f"- Nguyên tố thống trị: {interpretation.dominant_element}\n"
-        f"- Điểm Elemental Dignity tổng: {interpretation.overall_dignity_score:+.2f}\n\n"
-        "Hãy đọc bài theo cấu trúc:\n"
+        f"- Nguyên tố thống trị: {element_vi(interpretation.dominant_element)}\n"
+        f"- Điểm Elemental Dignity tổng: {interpretation.overall_dignity_score:+.2f} "
+        f"(thang -1 suy yếu → +1 cộng hưởng)\n\n"
+        "Hãy đọc bài theo cấu trúc (mỗi phần mở đầu bằng tiêu đề in đậm):\n"
         "1. Mở đầu (1-2 câu cảm nhận tổng thể)\n"
         "2. Từng lá bài (theo thứ tự vị trí)\n"
         "3. Dòng chảy giữa các lá (elemental dignities)\n"

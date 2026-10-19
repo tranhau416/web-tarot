@@ -1,6 +1,7 @@
 "use client"
 
 import type { CardInterpretation, InterpretationResult } from "../lib/types"
+import { QUANTUM_SOURCE_LABELS } from "@/app/lib/constants"
 
 interface InterpretationPanelProps {
   card: CardInterpretation
@@ -48,6 +49,9 @@ export default function InterpretationPanel({
           <h3 className="font-serif text-3xl text-light leading-tight">
             {card.card_name}
           </h3>
+          {card.name_vi && (
+            <p className="font-serif italic text-lg text-glow">{card.name_vi}</p>
+          )}
           <p className="text-silver text-base font-sans mt-1">
             {card.suit.replace(/_/g, " ")} ·{" "}
             {card.arcana.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
@@ -76,10 +80,8 @@ export default function InterpretationPanel({
           </h4>
         </div>
         <div className="bg-veil rounded-xl p-4">
-          <p className="text-glow font-serif text-lg">
-            {card.timing.timing_range === "timeless"
-              ? "Timeless"
-              : card.timing.timing_range}
+          <p className="text-glow font-serif text-lg first-letter:uppercase">
+            {card.timing.timing_range}
           </p>
           {card.timing.notes && card.timing.notes !== "timeless" && (
             <p className="text-silver text-base font-sans mt-1.5 leading-relaxed">
@@ -150,7 +152,12 @@ export default function InterpretationPanel({
           </div>
           <div className="text-silver text-base font-sans space-y-1.5">
             {card.zodiac_mode && <p>Zodiac: <span className="text-pearl">{card.zodiac_mode}</span></p>}
-            {card.astro_decan && <p>Decan: <span className="text-pearl">{card.astro_decan}</span></p>}
+            {card.astro_decan && (
+              <p>
+                {card.arcana === "major" ? "Attribution" : "Decan"}:{" "}
+                <span className="text-pearl">{card.astro_decan}</span>
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -162,13 +169,12 @@ export default function InterpretationPanel({
           <span>
             Entropy:{" "}
             <span className="text-silver/80">
-              {quantumSource === "anu_qrng"
-                ? "ANU Quantum RNG"
-                : quantumSource}
+              {QUANTUM_SOURCE_LABELS[quantumSource] ?? quantumSource}
             </span>
           </span>
           <span className="ml-auto text-silver/50">
             byte: {card.raw_quantum_byte}
+            {card.orientation_byte !== null && ` · ${card.orientation_byte}`}
           </span>
         </p>
       </div>

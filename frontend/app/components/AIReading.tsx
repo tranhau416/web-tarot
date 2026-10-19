@@ -1,78 +1,100 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { streamAIReading } from "@/app/lib/api";
-import type { DrawRequest, InterpretationResult } from "@/app/lib/types";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
 
 interface AIReadingProps {
-  drawRequest: DrawRequest;
-  onDrawResult: (result: { session_id: string; interpretation: InterpretationResult; disclaimer: string }) => void;
+  text: string;
+  /** Đang chờ draw_result (chưa có lá bài) */
+  isWaiting: boolean;
+  /** Đang nhận token */
+  isStreaming: boolean;
+  isDone: boolean;
+  error: string | null;
 }
 
-export default function AIReading({ drawRequest, onDrawResult }: AIReadingProps) {
-  const [streamedText, setStreamedText] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isDone, setIsDone] = useState(false);
-  const hasStarted = useRef(false);
-  const cursorRef = useRef<HTMLSpanElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+/** Inline markdown tối giản: **đậm** và *nghiêng*. */
+function renderInline(line: string): ReactNode[] {
+  return line.split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*)/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return <strong key={i} className="text-light font-semibold">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return <em key={i} className="text-glow">{part.slice(1, -1)}</em>;
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
 
-  useEffect(() => {
-    if (hasStarted.current) return;
-    hasStarted.current = true;
+/** Block markdown tối giản: tiêu đề (#, hoặc dòng chỉ có **...**), gạch đầu dòng, đoạn văn. */
+function renderReading(text: string): ReactNode[] {
+  const blocks: ReactNode[] = [];
+  let bullets: string[] = [];
 
-    async function run() {
-      try {
-        for await (const event of streamAIReading(drawRequest)) {
-          if (event.type === "draw_result") {
-            onDrawResult({
-              session_id: event.session_id,
-              interpretation: event.interpretation,
-              disclaimer: event.disclaimer,
-            });
-            setIsLoading(false);
-            setIsStreaming(true);
-          } else if (event.type === "token") {
-            setStreamedText((prev) => prev + event.text);
-          } else if (event.type === "done") {
-            setIsStreaming(false);
-            setIsDone(true);
-          } else if (event.type === "error") {
-            setError(event.message);
-            setIsLoading(false);
-            setIsStreaming(false);
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định.");
-        setIsLoading(false);
-        setIsStreaming(false);
-      }
+  const flushBullets = () => {
+    if (bullets.length === 0) return;
+    const items = bullets;
+    bullets = [];
+    blocks.push(
+      <ul key={`ul-${blocks.length}`} className="list-none space-y-2 pl-1">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-2">
+            <span className="text-arcane select-none">✦</span>
+            <span>{renderInline(item)}</span>
+          </li>
+        ))}
+      </ul>,
+    );
+  };
+
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    if (!line) {
+      flushBullets();
+      continue;
     }
 
-    run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Auto-scroll to bottom when streaming new content
-  useEffect(() => {
-    if (isStreaming && scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    const heading = line.match(/^#{1,4}\s+(.*)$/) ?? line.match(/^\*\*([^*]+)\*\*:?$/);
+    if (heading) {
+      flushBullets();
+      blocks.push(
+        <h3 key={`h-${blocks.length}`} className="font-serif text-xl text-pearl pt-2">
+          {heading[1].replace(/\*\*/g, "")}
+        </h3>,
+      );
+      continue;
     }
-  }, [streamedText, isStreaming]);
 
-  if (isLoading) {
+    const bullet = line.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
+    if (bullet) {
+      bullets.push(bullet[1]);
+      continue;
+    }
+
+    flushBullets();
+    blocks.push(<p key={`p-${blocks.length}`}>{renderInline(line)}</p>);
+  }
+  flushBullets();
+  return blocks;
+}
+
+export default function AIReading({ text, isWaiting, isStreaming, isDone, error }: AIReadingProps) {
+  const endRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll theo nội dung mới khi đang stream
+  useEffect(() => {
+    if (isStreaming && endRef.current) {
+      endRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [text, isStreaming]);
+
+  if (isWaiting) {
     return (
-      <div className="space-y-4 py-6">
-        {/* Shimmer skeleton lines */}
+      <div className="space-y-4 py-6" aria-live="polite">
         <div className="space-y-3">
           <div className="h-4 bg-mist/40 rounded animate-pulse w-full" />
           <div className="h-4 bg-mist/40 rounded animate-pulse w-5/6" />
           <div className="h-4 bg-mist/40 rounded animate-pulse w-4/6" />
         </div>
-        {/* Loading message */}
         <div className="flex items-center justify-center gap-3 pt-4">
           <span className="animate-pulse text-xl">✦</span>
           <span className="text-silver font-serif text-base">
@@ -89,16 +111,11 @@ export default function AIReading({ drawRequest, onDrawResult }: AIReadingProps)
     );
   }
 
-  if (error) {
-    return (
-      <div className="rounded-lg border border-red-500/50 bg-red-900/10 p-6 text-center">
-        <p className="text-red-400 font-serif">{error}</p>
-      </div>
-    );
-  }
+  // Lỗi trước khi có nội dung: để page hiển thị thông báo lỗi chung
+  if (error && !text) return null;
 
   return (
-    <div className="mt-8">
+    <section className="mt-8" aria-live="polite" aria-busy={isStreaming}>
       <h2 className="text-2xl font-serif text-pearl mb-4 flex items-center gap-2">
         <span className="text-glow">✦</span>
         Lời Đọc Bài
@@ -110,18 +127,17 @@ export default function AIReading({ drawRequest, onDrawResult }: AIReadingProps)
       </h2>
 
       <div
-        ref={scrollRef}
-        className="rounded-lg border border-mist bg-ink/60 p-6 font-serif text-lg text-pearl leading-loose whitespace-pre-wrap"
+        className="rounded-lg border border-mist bg-ink/60 p-4 sm:p-6 font-serif text-lg text-pearl leading-loose space-y-3"
         style={{ minHeight: "8rem" }}
       >
-        {streamedText}
+        {renderReading(text)}
         {isStreaming && (
-          <span
-            ref={cursorRef}
-            className="inline-block w-0.5 h-5 bg-glow ml-0.5 align-middle animate-pulse"
-          />
+          <span className="inline-block w-0.5 h-5 bg-glow ml-0.5 align-middle animate-pulse" />
         )}
-        {isDone && !streamedText && (
+        {isStreaming && !text && (
+          <p className="text-silver italic text-base">Các lá bài đang thì thầm…</p>
+        )}
+        {isDone && !text && (
           <div className="flex flex-col items-center gap-3 text-silver py-4">
             <span className="text-3xl select-none">✦</span>
             <p className="italic text-base text-center">
@@ -129,7 +145,13 @@ export default function AIReading({ drawRequest, onDrawResult }: AIReadingProps)
             </p>
           </div>
         )}
+        {error && (
+          <p className="text-red-400 text-base font-sans border-t border-red-500/30 pt-3">
+            {error}
+          </p>
+        )}
+        <div ref={endRef} />
       </div>
-    </div>
+    </section>
   );
 }
