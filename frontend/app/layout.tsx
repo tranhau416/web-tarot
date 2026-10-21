@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import BrandMark from "./components/BrandMark";
 import LegalGate from "./components/LegalGate";
+import NavLink from "./components/NavLink";
+import { STRINGS } from "./lib/strings";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sacred Tarot — Quantum-Powered Readings",
+  title: "Sacred Tarot — Trải bài Tarot bằng ngẫu nhiên lượng tử",
   description:
-    "Experience quantum-powered tarot readings in a sacred digital space. Connect with ancient wisdom through modern technology.",
+    "Đặt câu hỏi, chọn kiểu trải bài và nhận lời đọc từ bộ Rider-Waite-Smith 1909. Mỗi lá được chọn bằng nguồn ngẫu nhiên lượng tử.",
 };
 
 export default function RootLayout({
@@ -30,19 +33,22 @@ export default function RootLayout({
       </head>
       <body className="bg-void text-light antialiased min-h-screen">
         <LegalGate>
-          {/* Navigation */}
-          <nav className="fixed top-0 left-0 right-0 z-40 border-b border-mist bg-void/80 backdrop-blur-sm">
-            <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <header className="fixed top-0 left-0 right-0 z-40 border-b border-mist bg-void/85 backdrop-blur-sm">
+            <nav
+              aria-label="Chính"
+              className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between"
+            >
               <Link
                 href="/"
-                className="text-pearl hover:text-glow transition-colors duration-200 font-serif text-xl tracking-wide"
+                className="flex items-center gap-2.5 text-pearl hover:text-light transition-colors font-serif text-xl tracking-wide"
               >
-                🔮 Tarot
+                <BrandMark className="w-7 h-7" />
+                {STRINGS.BRAND}
               </Link>
-            </div>
-          </nav>
+              <NavLink href="/history">{STRINGS.HISTORY}</NavLink>
+            </nav>
+          </header>
 
-          {/* Main content with top padding for fixed nav */}
           <main className="pt-14">{children}</main>
         </LegalGate>
       </body>

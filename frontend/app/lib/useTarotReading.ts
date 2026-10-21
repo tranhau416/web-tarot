@@ -23,6 +23,7 @@ export function useTarotReading() {
   const [draw, setDraw] = useState<DrawResponse | null>(null)
   const [text, setText] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [stopped, setStopped] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
   const start = useCallback(async (req: DrawRequest) => {
@@ -34,6 +35,7 @@ export function useTarotReading() {
     setDraw(null)
     setText("")
     setError(null)
+    setStopped(false)
     setPhase("drawing")
 
     try {
@@ -67,6 +69,14 @@ export function useTarotReading() {
     }
   }, [])
 
+  /** Dừng lời đọc nhưng giữ lá bài và phần chữ đã nhận. */
+  const stop = useCallback(() => {
+    abortRef.current?.abort()
+    abortRef.current = null
+    setStopped(true)
+    setPhase("done")
+  }, [])
+
   const reset = useCallback(() => {
     abortRef.current?.abort()
     abortRef.current = null
@@ -75,10 +85,11 @@ export function useTarotReading() {
     setDraw(null)
     setText("")
     setError(null)
+    setStopped(false)
   }, [])
 
   // Huỷ stream đang chạy khi component unmount
   useEffect(() => () => abortRef.current?.abort(), [])
 
-  return { phase, request, draw, text, error, start, reset }
+  return { phase, request, draw, text, error, stopped, start, stop, reset }
 }

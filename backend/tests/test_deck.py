@@ -1,9 +1,11 @@
+import re
 from collections import Counter
 
 import pytest
 
 from app.core.init_db import merge_card_records
 from app.data.tarot_deck import TAROT_DECK, TAROT_DECK_BY_NAME
+from app.data.vi import KEYWORDS_VI, astro_vi
 
 
 def test_deck_has_78_unique_cards():
@@ -74,3 +76,33 @@ def test_merge_keeps_base_metadata_and_overrides_fields():
     assert fool["metadata_json"]["keywords_upright"]
     # Không làm thay đổi bộ bài gốc
     assert "tavily_answer" not in TAROT_DECK_BY_NAME["The Fool"]["metadata_json"]
+
+
+def test_every_keyword_has_vietnamese_translation():
+    for card in TAROT_DECK:
+        meta = card["metadata_json"]
+        for en in meta["keywords_upright"] + meta["keywords_reversed"]:
+            assert en in KEYWORDS_VI, f"{card['name']}: {en!r}"
+        assert len(meta["keywords_upright_vi"]) == len(meta["keywords_upright"])
+        assert len(meta["keywords_reversed_vi"]) == len(meta["keywords_reversed"])
+
+
+@pytest.mark.parametrize(
+    ("en", "vi"),
+    [
+        ("Mars in Aries (0°–10°)", "Sao Hỏa trong Bạch Dương (0°–10°)"),
+        ("20° Scorpio – 20° Sagittarius", "20° Bọ Cạp – 20° Nhân Mã"),
+        ("Root of Water", "Gốc rễ của Nước"),
+        ("Earth of Fire", "Đất của Lửa"),
+        ("Element of Air", "Nguyên tố Khí"),
+        ("Mercury", "Sao Thủy"),
+    ],
+)
+def test_astro_vi(en, vi):
+    assert astro_vi(en) == vi
+
+
+def test_no_english_left_in_astro_vi():
+    english = re.compile(r"\b(Sun|Moon|Mars|Venus|Mercury|Jupiter|Saturn|Aries|Leo|Pisces|Fire|Water|Air|Earth|in|of)\b")
+    for card in TAROT_DECK:
+        assert not english.search(card["metadata_json"]["astro_vi"]), card["name"]

@@ -1,199 +1,142 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
-import type { CardInterpretation, InterpretationResult } from "../lib/types"
-import { QUANTUM_SOURCE_LABELS } from "@/app/lib/constants"
+import { useState, type ReactNode } from "react"
+import { OrientationTag, cardTitle, positionLabel } from "@/app/components/SpreadBoard"
+import { ELEMENT_VI, QUANTUM_SOURCE_LABELS, SUIT_VI, ZODIAC_MODE_VI } from "@/app/lib/constants"
+import { STRINGS } from "@/app/lib/strings"
+import type { CardInterpretation, InterpretationResult } from "@/app/lib/types"
 
-interface InterpretationPanelProps {
-  card: CardInterpretation
-  interpretationResult?: InterpretationResult
-}
-
-function DignityBar({ value }: { value: number }) {
-  // value from -1.0 to +1.0
-  const percentage = ((value + 1) / 2) * 100
-  const color =
-    value > 0.2 ? "#6EC99F" : value < -0.2 ? "#E07A7A" : "#8B8FA8"
-
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="mt-2">
-      <div className="flex justify-between text-sm text-silver/70 mb-1 font-mono">
-        <span>−1.0</span>
-        <span className="font-medium" style={{ color }}>
-          {value >= 0 ? "+" : ""}{value.toFixed(2)}
-        </span>
-        <span>+1.0</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-mist overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${percentage}%`, backgroundColor: color }}
-        />
-      </div>
-    </div>
+    <section>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-silver mb-2">{title}</h3>
+      {children}
+    </section>
   )
 }
 
-export default function InterpretationPanel({
-  card,
-  interpretationResult,
-}: InterpretationPanelProps) {
+function capitalize(text: string): string {
+  return text ? text[0].toUpperCase() + text.slice(1) : text
+}
+
+function DignityNote({ card }: { card: CardInterpretation }) {
+  const w = card.dignity_weight
+  const tone = w > 0 ? "text-positive" : w < 0 ? "text-negative" : "text-silver"
+  const icon = w > 0 ? "▲" : w < 0 ? "▼" : "●"
+  return (
+    <p className="flex items-start gap-2 text-base text-pearl">
+      <span aria-hidden="true" className={`${tone} text-xs mt-1.5`}>{icon}</span>
+      <span>{capitalize(card.dignity_label_vi)}.</span>
+    </p>
+  )
+}
+
+interface InterpretationPanelProps {
+  card: CardInterpretation
+  interpretation: InterpretationResult
+}
+
+/** Chi tiết một lá: ý nghĩa trước, kỹ thuật (byte, điểm số) thu gọn ở cuối. */
+export default function InterpretationPanel({ card, interpretation }: InterpretationPanelProps) {
   const [imageFailed, setImageFailed] = useState(false)
-  const isUpright = card.orientation === "upright"
-  const keywords = isUpright ? card.keywords_upright : card.keywords_reversed
-  const quantumSource = interpretationResult?.quantum_source ?? "os_entropy"
+  const reversed = card.orientation === "reversed"
+  const keywords = reversed
+    ? (card.keywords_reversed_vi.length ? card.keywords_reversed_vi : card.keywords_reversed)
+    : (card.keywords_upright_vi.length ? card.keywords_upright_vi : card.keywords_upright)
+  const hasNeighbours = interpretation.cards.length > 1
+  const element = card.element ? ELEMENT_VI[card.element] : null
+  const zodiac = card.zodiac_mode ? ZODIAC_MODE_VI[card.zodiac_mode] ?? card.zodiac_mode : null
+  const astro = card.astro_decan_vi || card.astro_decan
+  const timingRange = card.timing.range_vi || card.timing.timing_range
+  const timingNotes = card.timing.notes_vi
 
   return (
-    <div className="bg-ink border border-mist rounded-2xl p-4 sm:p-6 space-y-5 animate-fade-in">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-start gap-4">
         {card.image_url && !imageFailed && (
-          <div className="relative w-20 sm:w-28 aspect-[3/5] flex-shrink-0 rounded-lg overflow-hidden border border-mist shadow-lg">
+          <div className="relative w-24 sm:w-28 aspect-[3/5] flex-shrink-0 rounded-lg overflow-hidden border border-mist shadow-lg">
             <Image
               src={card.image_url}
-              alt={`${card.card_name}${isUpright ? "" : " (ngược)"}`}
+              alt={`${card.card_name}${reversed ? ` (${STRINGS.REVERSED.toLowerCase()})` : ""}`}
               fill
               unoptimized
               sizes="112px"
-              className={`object-cover ${isUpright ? "" : "rotate-180"}`}
+              className={`object-cover ${reversed ? "rotate-180" : ""}`}
               onError={() => setImageFailed(true)}
             />
           </div>
         )}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-serif text-2xl sm:text-3xl text-light leading-tight">
-            {card.card_name}
-          </h3>
-          {card.name_vi && (
-            <p className="font-serif italic text-lg text-glow">{card.name_vi}</p>
-          )}
-          <p className="text-silver text-base font-sans mt-1">
-            {card.suit.replace(/_/g, " ")} ·{" "}
-            {card.arcana.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-silver">
+            {card.position_index + 1} · {positionLabel(card, interpretation.spread_type)}
           </p>
-        </div>
-        <div
-          className={`flex-shrink-0 px-3 py-1 rounded-full border text-sm font-sans font-medium
-            ${isUpright
-              ? "border-upright/50 text-upright bg-upright/10"
-              : "border-reversed/50 text-reversed bg-reversed/10"
-            }`}
-        >
-          {isUpright ? "Upright" : "Reversed"}
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-mist" />
-
-      {/* 1. Timing */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-base">⏳</span>
-          <h4 className="text-pearl text-sm font-sans font-semibold uppercase tracking-wider">
-            Timing
-          </h4>
-        </div>
-        <div className="bg-veil rounded-xl p-4">
-          <p className="text-glow font-serif text-lg first-letter:uppercase">
-            {card.timing.timing_range}
-          </p>
-          {card.timing.notes && card.timing.notes !== "timeless" && (
-            <p className="text-silver text-base font-sans mt-1.5 leading-relaxed">
-              {card.timing.notes}
-            </p>
-          )}
-          {card.timing.zodiac_mode && (
-            <p className="text-silver/70 text-sm font-sans mt-1.5">
-              Zodiac: {card.timing.zodiac_mode}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* 2. Elemental Dignity */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-base">⚗️</span>
-          <h4 className="text-pearl text-sm font-sans font-semibold uppercase tracking-wider">
-            Elemental Dignity
-          </h4>
-        </div>
-        <div className="bg-veil rounded-xl p-4">
-          {card.element && (
-            <p className="text-silver text-base font-sans mb-2">
-              Element:{" "}
-              <span className="text-pearl capitalize">{card.element}</span>
-            </p>
-          )}
-          <DignityBar value={card.dignity_weight} />
-        </div>
-      </div>
-
-      {/* 3. Keywords */}
-      {keywords.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-base">🔑</span>
-            <h4 className="text-pearl text-sm font-sans font-semibold uppercase tracking-wider">
-              Keywords
-            </h4>
+          <h2 id="card-detail-title" className="font-serif text-2xl sm:text-3xl text-light leading-tight mt-0.5">
+            {cardTitle(card)}
+          </h2>
+          {card.name_vi && <p className="font-serif italic text-base text-silver">{card.card_name}</p>}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <OrientationTag reversed={reversed} />
+            <span className="text-sm text-silver">
+              {SUIT_VI[card.suit] ?? card.suit}
+              {element && ` · ${element}`}
+            </span>
           </div>
-          <div className="flex flex-wrap gap-2">
+        </div>
+      </div>
+
+      {keywords.length > 0 && (
+        <Section title={`${STRINGS.MEANING} (${reversed ? STRINGS.REVERSED : STRINGS.UPRIGHT})`}>
+          <ul className="flex flex-wrap gap-2">
             {keywords.map((kw) => (
-              <span
+              <li
                 key={kw}
-                className={`px-3 py-1.5 rounded-full text-sm font-sans border
-                  ${isUpright
-                    ? "border-upright/30 text-upright bg-upright/5"
-                    : "border-reversed/30 text-reversed bg-reversed/5"
-                  }`}
+                className={`rounded-full border px-3 py-1 text-sm text-light ${reversed ? "border-reversed/40 bg-reversed/10" : "border-upright/40 bg-upright/10"}`}
               >
                 {kw}
-              </span>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Section>
       )}
 
-      {/* Astro decan / Zodiac */}
-      {(card.zodiac_mode || card.astro_decan) && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-base">♑</span>
-            <h4 className="text-pearl text-sm font-sans font-semibold uppercase tracking-wider">
-              Astrology
-            </h4>
-          </div>
-          <div className="text-silver text-base font-sans space-y-1.5">
-            {card.zodiac_mode && <p>Zodiac: <span className="text-pearl">{card.zodiac_mode}</span></p>}
-            {card.astro_decan && (
-              <p>
-                {card.arcana === "major" ? "Attribution" : "Decan"}:{" "}
-                <span className="text-pearl">{card.astro_decan}</span>
-              </p>
-            )}
-          </div>
-        </div>
+      {hasNeighbours && (
+        <Section title={STRINGS.NEIGHBOURS}>
+          <DignityNote card={card} />
+        </Section>
       )}
 
-      {/* 4. Quantum Source Footer */}
-      <div className="border-t border-mist pt-4">
-        <p className="text-silver/80 text-xs font-mono flex items-center gap-2">
-          <span>🔬</span>
-          <span>
-            Entropy:{" "}
-            <span className="text-silver/80">
-              {QUANTUM_SOURCE_LABELS[quantumSource] ?? quantumSource}
-            </span>
-          </span>
-          <span className="ml-auto text-silver/50">
-            byte: {card.raw_quantum_byte}
-            {card.orientation_byte !== null && ` · ${card.orientation_byte}`}
-          </span>
-        </p>
-      </div>
+      <Section title={STRINGS.TIMING}>
+        <p className="font-serif text-lg text-light">{capitalize(timingRange)}</p>
+        {timingNotes && <p className="mt-1 text-base text-pearl leading-relaxed">{timingNotes}</p>}
+      </Section>
+
+      {(astro || zodiac) && (
+        <Section title={STRINGS.ASTROLOGY}>
+          <p className="text-base text-pearl">
+            {astro}
+            {zodiac && <span className="text-silver">{astro ? " · " : ""}Cung {zodiac.toLowerCase()}</span>}
+          </p>
+        </Section>
+      )}
+
+      <details className="group rounded-lg border border-mist px-4 py-3">
+        <summary className="cursor-pointer text-sm text-silver hover:text-pearl">{STRINGS.TECHNICAL}</summary>
+        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm font-mono text-pearl">
+          <dt className="text-silver">Elemental dignity</dt>
+          <dd>{card.dignity_weight >= 0 ? "+" : ""}{card.dignity_weight.toFixed(2)}</dd>
+          <dt className="text-silver">{STRINGS.ENTROPY_SOURCE}</dt>
+          <dd>{QUANTUM_SOURCE_LABELS[interpretation.quantum_source] ?? interpretation.quantum_source}</dd>
+          <dt className="text-silver">Byte chọn lá</dt>
+          <dd>{card.raw_quantum_byte}</dd>
+          {card.orientation_byte !== null && (
+            <>
+              <dt className="text-silver">Byte chiều lá</dt>
+              <dd>{card.orientation_byte}</dd>
+            </>
+          )}
+        </dl>
+      </details>
     </div>
   )
 }

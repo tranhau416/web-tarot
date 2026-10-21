@@ -59,3 +59,19 @@ def test_calculate_timing(zodiac_mode, arcana, element, unit, range_):
     result = calculate_timing("X", zodiac_mode, arcana, element)
     assert result.timing_unit == unit
     assert result.timing_range == range_
+
+
+@pytest.mark.parametrize(
+    ("zodiac_mode", "arcana", "element", "range_vi", "notes_fragment"),
+    [
+        ("cardinal", "minor", "fire", "trong khoảng 1–4 tuần", "Thống lĩnh"),
+        ("fixed", "minor", "water", "trong khoảng 1–4 tháng", "Kiên định"),
+        ("mutable", "minor", "air", "trong khoảng 3–21 ngày", "Linh hoạt"),
+        (None, "minor", "earth", "trong mùa đông sắp tới", "hạt giống"),
+        (None, "major", "fire", "vượt ngoài khung thời gian cụ thể", "Ẩn Chính"),
+    ],
+)
+def test_timing_vietnamese(zodiac_mode, arcana, element, range_vi, notes_fragment):
+    result = calculate_timing("X", zodiac_mode, arcana, element)
+    assert result.range_vi == range_vi
+    assert notes_fragment in result.notes_vi

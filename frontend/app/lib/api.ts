@@ -26,29 +26,33 @@ export class ApiError extends Error {
   }
 }
 
+/** Lời nhắn cho người dùng — không bao giờ hiện chuỗi kỹ thuật từ backend. */
 const STATUS_MESSAGES: Record<number, string> = {
   403: "Bạn cần xác nhận đủ 18 tuổi trước khi rút bài.",
+  404: "Không tìm thấy dữ liệu bạn yêu cầu.",
   429: "Bạn rút bài hơi nhanh — hãy hít thở và thử lại sau ít phút.",
   502: "Máy chủ đang khởi động lại. Vui lòng thử lại sau giây lát.",
+  503: "Bộ bài đang được chuẩn bị. Vui lòng thử lại sau ít phút.",
   504: "Máy chủ phản hồi quá lâu. Vui lòng thử lại.",
 }
 
 async function toApiError(res: Response): Promise<ApiError> {
-  let detail: string | undefined
+  let detail: unknown
   try {
     const body: unknown = await res.json()
     if (body && typeof body === "object" && "detail" in body) {
-      const d = (body as { detail: unknown }).detail
-      if (typeof d === "string") detail = d
+      detail = (body as { detail: unknown }).detail
     }
   } catch {
     // body không phải JSON (VD: trang lỗi của nginx)
   }
+  // Chi tiết kỹ thuật chỉ để trong console cho người phát triển
+  console.warn(`API ${res.status} ${res.url}`, detail)
   const message =
     STATUS_MESSAGES[res.status] ??
-    (res.status === 503 && detail ? `Dịch vụ tạm thời không sẵn sàng: ${detail}` : undefined) ??
-    detail ??
-    `Lỗi máy chủ (HTTP ${res.status}).`
+    (res.status >= 500
+      ? "Máy chủ đang gặp sự cố. Vui lòng thử lại sau ít phút."
+      : "Yêu cầu chưa hợp lệ. Vui lòng tải lại trang và thử lại.")
   return new ApiError(message, res.status)
 }
 
@@ -58,7 +62,7 @@ async function request(input: string, init?: RequestInit): Promise<Response> {
     res = await fetch(input, init)
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err
-    throw new ApiError("Không kết nối được tới máy chủ. Kiểm tra mạng hoặc backend.")
+    throw new ApiError("Không kết nối được tới máy chủ. Hãy kiểm tra kết nối mạng và thử lại.")
   }
   if (!res.ok) throw await toApiError(res)
   return res

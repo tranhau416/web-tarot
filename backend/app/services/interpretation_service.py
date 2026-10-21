@@ -33,6 +33,14 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.data.vi import (
+    ELEMENT_VI,
+    astro_vi,
+    dignity_vi,
+    keywords_vi,
+    timing_notes_vi,
+    timing_vi,
+)
 from app.services.quantum_engine import DrawResult, DrawnCard
 
 logger = logging.getLogger(__name__)
@@ -137,6 +145,14 @@ class TimingResult(BaseModel):
     timing_unit: str
     timing_range: str   # VD: "1-4 weeks"
     notes: str
+    range_vi: str = ""  # VD: "trong khoảng 1–4 tuần"
+    notes_vi: str = ""
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.range_vi:
+            self.range_vi = timing_vi(self.timing_unit, self.timing_range)
+        if not self.notes_vi:
+            self.notes_vi = timing_notes_vi(self.timing_unit, self.timing_range, self.zodiac_mode)
 
 
 # Mapping zodiac_mode → timing parameters
@@ -274,15 +290,20 @@ class CardInterpretation(BaseModel):
     orientation: str
     zodiac_mode: Optional[str] = None
     astro_decan: Optional[str] = None
+    astro_decan_vi: Optional[str] = None
     numerology_value: Optional[int] = None
     dignity_weight: float
+    dignity_label_vi: str = ""
     timing: TimingResult
     keywords_upright: list[str] = []
     keywords_reversed: list[str] = []
+    keywords_upright_vi: list[str] = []
+    keywords_reversed_vi: list[str] = []
     image_url: Optional[str] = None
     raw_quantum_byte: int
     orientation_byte: Optional[int] = None
     position_label: Optional[str] = None
+    position_label_vi: Optional[str] = None
 
 
 class InterpretationResult(BaseModel):
@@ -292,6 +313,7 @@ class InterpretationResult(BaseModel):
     cards: list[CardInterpretation]
     overall_dignity_score: float    # trung bình dignity toàn spread
     dominant_element: str           # nguyên tố xuất hiện nhiều nhất
+    dominant_element_vi: str = ""
     quantum_source: str             # "anu_qrng" | "random_org" | "os_entropy"
 
 
@@ -373,6 +395,10 @@ async def interpret_spread(
                 or []
             )
             keywords_rev = meta.get("keywords_reversed") or meta.get("reversed_keywords") or []
+            keywords_up_vi = meta.get("keywords_upright_vi") or keywords_vi(keywords_up)
+            keywords_rev_vi = meta.get("keywords_reversed_vi") or keywords_vi(keywords_rev)
+        else:
+            keywords_up_vi, keywords_rev_vi = [], []
 
         card_interp = CardInterpretation(
             position_index=dc.position_index,
@@ -385,11 +411,15 @@ async def interpret_spread(
             orientation=dc.orientation,
             zodiac_mode=db_card.zodiac_mode if db_card else None,
             astro_decan=db_card.astro_decan if db_card else None,
+            astro_decan_vi=astro_vi(db_card.astro_decan) if db_card else None,
             numerology_value=db_card.numerology_value if db_card else None,
             dignity_weight=dignity,
+            dignity_label_vi=dignity_vi(dignity),
             timing=timing,
             keywords_upright=keywords_up,
             keywords_reversed=keywords_rev,
+            keywords_upright_vi=keywords_up_vi,
+            keywords_reversed_vi=keywords_rev_vi,
             image_url=db_card.image_url if db_card else None,
             raw_quantum_byte=dc.raw_quantum_byte,
             orientation_byte=dc.orientation_byte,
@@ -417,5 +447,6 @@ async def interpret_spread(
         cards=card_interpretations,
         overall_dignity_score=round(overall_dignity, 4),
         dominant_element=dominant_element,
+        dominant_element_vi=ELEMENT_VI.get(dominant_element, "không xác định"),
         quantum_source=draw_result.quantum_source,
     )

@@ -1,6 +1,6 @@
 """Build user prompt từ interpretation data."""
 from app.schemas.tarot import InterpretationResult
-from app.services.prompts.vocabulary import (
+from app.data.vi import (
     SPREAD_VI,
     dignity_vi,
     element_vi,
@@ -29,13 +29,13 @@ def build_user_prompt(
             position = f"{position} ({card.position_label})"
         orientation_vi = "thuận" if card.orientation == "upright" else "ngược"
         name = f"{card.card_name} — {card.name_vi}" if card.name_vi else card.card_name
-        keywords = (
-            card.keywords_upright
-            if card.orientation == "upright"
-            else card.keywords_reversed
-        )
+        if card.orientation == "upright":
+            keywords = card.keywords_upright_vi or card.keywords_upright
+        else:
+            keywords = card.keywords_reversed_vi or card.keywords_reversed
         keywords_str = ", ".join(keywords[:5]) if keywords else "không có"
-        astro_str = f" | Chiêm tinh: {card.astro_decan}" if card.astro_decan else ""
+        astro = card.astro_decan_vi or card.astro_decan
+        astro_str = f" | Chiêm tinh: {astro}" if astro else ""
 
         cards_text += (
             f"- **{position}**: {name} ({orientation_vi}) "

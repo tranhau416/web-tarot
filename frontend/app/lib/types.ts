@@ -8,6 +8,8 @@ export interface TimingResult {
   timing_unit: string
   timing_range: string
   notes: string
+  range_vi: string
+  notes_vi: string
 }
 
 export interface CardInterpretation {
@@ -21,15 +23,20 @@ export interface CardInterpretation {
   orientation: Orientation
   zodiac_mode: string | null
   astro_decan: string | null
+  astro_decan_vi: string | null
   numerology_value: number | null
   dignity_weight: number
+  dignity_label_vi: string
   timing: TimingResult
   keywords_upright: string[]
   keywords_reversed: string[]
+  keywords_upright_vi: string[]
+  keywords_reversed_vi: string[]
   image_url: string | null
   raw_quantum_byte: number
   orientation_byte: number | null
   position_label?: string
+  position_label_vi?: string
 }
 
 export interface InterpretationResult {
@@ -37,6 +44,7 @@ export interface InterpretationResult {
   cards: CardInterpretation[]
   overall_dignity_score: number
   dominant_element: string
+  dominant_element_vi: string
   quantum_source: string
 }
 

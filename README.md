@@ -53,6 +53,7 @@
 │       │   ├── init_db.py      # Tạo schema + seed tự động khi khởi động
 │       │   └── middleware.py   # Adult confirmation middleware
 │       ├── data/tarot_deck.py  # Bộ bài chuẩn 78 lá (Golden Dawn)
+│       ├── data/vi.py          # Từ vựng tiếng Việt (vị trí, từ khoá, chiêm tinh, thời điểm)
 │       ├── api/v1/
 │       │   ├── router.py
 │       │   └── endpoints/
@@ -70,20 +71,26 @@
 └── frontend/
     ├── public/cards/           # 78 ảnh lá bài + mặt sau (xem CREDITS.txt)
     └── app/
-        ├── layout.tsx
-        ├── page.tsx            # Main UI
-        ├── globals.css         # Custom color system
+        ├── layout.tsx          # Thanh điều hướng + cổng 18+
+        ├── page.tsx            # Form rút bài → kết quả (bàn trải + lời đọc)
+        ├── history/page.tsx    # Lịch sử trải bài (lưu trên trình duyệt)
+        ├── globals.css         # Hệ màu, focus ring, reduced motion
         ├── components/
-        │   ├── LegalGate.tsx   # Age verification modal
-        │   ├── AIReading.tsx   # Hiển thị lời đọc (markdown nhẹ)
-        │   ├── CardReveal.tsx  # 3D flip animation
-        │   ├── InterpretationPanel.tsx  # Chi tiết lá đang chọn
-        │   ├── SpreadSelector.tsx
-        │   ├── IntentionInput.tsx
-        │   └── DrawButton.tsx
+        │   ├── LegalGate.tsx   # Cổng xác nhận 18+
+        │   ├── SpreadBoard.tsx # Bàn trải theo đúng hình học (Celtic Cross, móng ngựa…) + chú giải
+        │   ├── CardSheet.tsx   # <dialog> chi tiết lá (bottom sheet / ngăn kéo)
+        │   ├── InterpretationPanel.tsx  # Nội dung chi tiết một lá
+        │   ├── AIReading.tsx   # Khu lời đọc (trạng thái, dừng, hành động)
+        │   ├── ReadingText.tsx # Markdown nhẹ cho lời đọc
+        │   ├── SpreadSelector.tsx / SpreadDiagram.tsx
+        │   ├── IntentionInput.tsx  # Câu hỏi + gợi ý chủ đề
+        │   └── DrawButton.tsx, BrandMark.tsx, HeroFan.tsx, NavLink.tsx
         └── lib/
-            ├── api.ts          # fetch + SSE async generator
+            ├── api.ts          # fetch + SSE async generator, thông báo lỗi thân thiện
             ├── useTarotReading.ts  # State machine của một lượt đọc bài
+            ├── spreadLayouts.ts    # Toạ độ các vị trí của từng kiểu trải
+            ├── history.ts      # Lưu/đọc lịch sử (localStorage)
+            ├── strings.ts      # Toàn bộ chữ giao diện (tiếng Việt)
             └── types.ts        # TypeScript interfaces
 ```
 

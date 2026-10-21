@@ -10,7 +10,7 @@ import re
 from typing import AsyncGenerator
 
 from app.schemas.tarot import InterpretationResult
-from app.services.prompts.vocabulary import (
+from app.data.vi import (
     SPREAD_VI,
     dignity_vi,
     element_vi,
@@ -29,6 +29,13 @@ _ELEMENT_MOOD: dict[str, str] = {
     "air": "luồng gió của lý trí và sự thật đang làm sáng tỏ mọi điều",
     "earth": "mặt đất vững chãi của thực tế và sự kiên nhẫn đang nâng đỡ bạn",
 }
+
+
+def _keywords(card) -> list[str]:
+    """Keywords theo hướng lá, ưu tiên tiếng Việt."""
+    if card.orientation == "upright":
+        return card.keywords_upright_vi or card.keywords_upright
+    return card.keywords_reversed_vi or card.keywords_reversed
 
 
 def build_mock_reading(interpretation: InterpretationResult, intention: str | None) -> str:
@@ -50,7 +57,7 @@ def build_mock_reading(interpretation: InterpretationResult, intention: str | No
     parts += ["", "**Từng lá bài nói gì?**", ""]
     for card in cards:
         upright = card.orientation == "upright"
-        keywords = card.keywords_upright if upright else card.keywords_reversed
+        keywords = _keywords(card)
         name = f"{card.card_name} ({card.name_vi})" if card.name_vi else card.card_name
         meaning = ", ".join(keywords[:3]) if keywords else "một thông điệp cần lắng nghe thêm"
         stance = (
@@ -74,10 +81,10 @@ def build_mock_reading(interpretation: InterpretationResult, intention: str | No
         flow = "Các nguyên tố đang giằng co: có những mong muốn kéo bạn về các hướng khác nhau, cần chọn điều ưu tiên."
     else:
         flow = "Các nguyên tố đan xen trung tính: sức mạnh đến từ sự cân bằng hơn là một hướng duy nhất."
-    parts.append(f"{flow} (Elemental Dignity tổng: {score:+.2f})")
+    parts.append(flow)
 
     focus = cards[-1]
-    focus_keywords = focus.keywords_upright if focus.orientation == "upright" else focus.keywords_reversed
+    focus_keywords = _keywords(focus)
     focus_word = focus_keywords[0] if focus_keywords else "tiếng nói bên trong"
     focus_where = (
         f"Lá {focus.card_name} ở vị trí "

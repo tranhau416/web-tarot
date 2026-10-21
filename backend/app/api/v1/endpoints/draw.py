@@ -25,6 +25,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.data.vi import position_vi
 from app.models import DrawLog, Session, User
 from app.schemas.tarot import DrawRequest, DrawResponse
 from app.services import interpretation_service, quantum_engine
@@ -123,6 +124,7 @@ async def _perform_draw(request_body: DrawRequest, db: AsyncSession) -> DrawResp
     labels = POSITION_LABELS[spread_type]
     for card in interpretation.cards:
         card.position_label = labels[card.position_index]
+        card.position_label_vi = position_vi(card.position_label, card.position_index)
 
     session_id = uuid.uuid4()
     db.add(Session(

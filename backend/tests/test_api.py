@@ -62,8 +62,11 @@ async def test_draw_returns_full_unique_spread(client, spread, labels):
         assert [c["position_label"] for c in cards] == labels
     for c in cards:
         assert c["keywords_upright"] and c["keywords_reversed"]
-        assert c["name_vi"]
+        assert c["keywords_upright_vi"] and c["keywords_reversed_vi"]
+        assert c["name_vi"] and c["position_label_vi"] and c["dignity_label_vi"]
+        assert c["astro_decan_vi"] and c["timing"]["range_vi"] and c["timing"]["notes_vi"]
         assert c["image_url"].startswith("/cards/")
+    assert body["interpretation"]["dominant_element_vi"] in {"Lửa", "Nước", "Khí", "Đất"}
     assert body["interpretation"]["quantum_source"] == "os_entropy"
     assert body["disclaimer"]
 

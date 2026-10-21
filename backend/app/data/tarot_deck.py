@@ -24,6 +24,8 @@ from __future__ import annotations
 import re
 from typing import Any, Optional
 
+from app.data.vi import astro_vi, keywords_vi
+
 # Ảnh lá bài (scan RWS 1909, public domain) do frontend phục vụ tại /cards/
 # — tạo bằng scripts/build_card_images.py
 CARD_IMAGE_BASE_URL = "/cards"
@@ -369,6 +371,10 @@ def build_deck() -> list[dict[str, Any]]:
 
     for card in deck:
         card["image_url"] = f"{CARD_IMAGE_BASE_URL}/{card_image_filename(card)}"
+        meta = card["metadata_json"]
+        meta["keywords_upright_vi"] = keywords_vi(meta["keywords_upright"])
+        meta["keywords_reversed_vi"] = keywords_vi(meta["keywords_reversed"])
+        meta["astro_vi"] = astro_vi(card["astro_decan"])
 
     return deck
 
