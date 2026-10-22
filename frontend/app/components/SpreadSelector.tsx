@@ -11,14 +11,13 @@ interface SpreadSelectorProps {
 /** Nhóm radio gốc (phím mũi tên hoạt động sẵn), mỗi lựa chọn có sơ đồ bố cục lá. */
 export default function SpreadSelector({ selected, onChange }: SpreadSelectorProps) {
   return (
-    <fieldset>
-      <legend className="text-pearl text-sm font-medium mb-2">{STRINGS.SPREAD_LABEL}</legend>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <fieldset className="min-w-0">
+      <legend className="mb-3 text-base font-semibold text-light">{STRINGS.SPREAD_LABEL}</legend>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         {SPREADS.map((spread) => {
           const isSelected = selected === spread.type
-          const count = spread.positions.length
           return (
-            <label key={spread.type} className="relative cursor-pointer">
+            <label key={spread.type} className="cursor-pointer">
               <input
                 type="radio"
                 name="spread"
@@ -28,28 +27,22 @@ export default function SpreadSelector({ selected, onChange }: SpreadSelectorPro
                 className="peer sr-only"
               />
               <span
-                className={`flex h-full flex-col items-center gap-1.5 rounded-xl border p-3 sm:p-4 text-center transition-colors
-                  peer-focus-visible:ring-2 peer-focus-visible:ring-glow peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-void
+                className={`flex h-full flex-col items-start gap-3 rounded-2xl border-[1.5px] p-3.5 sm:p-4 text-left transition-colors
+                  peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-gold
                   ${isSelected
-                    ? "border-arcane bg-arcane/15"
-                    : "border-mist bg-ink hover:border-arcane-dim hover:bg-veil"
+                    ? "border-gold bg-gold/[0.08]"
+                    : "border-mist bg-ink sm:bg-void hover:border-pearl/40"
                   }`}
               >
                 <SpreadDiagram
                   type={spread.type}
-                  className={`h-11 mb-1 ${isSelected ? "text-gold" : "text-silver"}`}
+                  className={`h-11 ${isSelected ? "text-gold" : "text-silver/60"}`}
                 />
-                <span className={`font-semibold text-base ${isSelected ? "text-light" : "text-pearl"}`}>
-                  {spread.name}
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-base font-semibold text-light">{spread.name}</span>
+                  <span className="text-sm leading-snug text-pearl">{spread.description}</span>
                 </span>
-                <span className={`text-xs font-mono ${isSelected ? "text-pearl" : "text-silver"}`}>
-                  {count} lá
-                </span>
-                <span className="text-sm text-silver leading-snug">{spread.description}</span>
               </span>
-              {isSelected && (
-                <span aria-hidden="true" className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
-              )}
             </label>
           )
         })}

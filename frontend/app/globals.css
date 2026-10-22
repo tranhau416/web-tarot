@@ -1,39 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  /* === Colors: Digital Sacred Space === */
-  --color-void: #050508;
-  --color-ink: #0D0D14;
-  --color-veil: #13131E;
-  --color-mist: #1E1E2E;
-  --color-silver: #8B8FA8;   /* 6.4:1 on void — smallest text colour allowed */
-  --color-pearl: #C8CADD;
-  --color-light: #E8EAF6;
-  --color-arcane: #7C6FCD;
-  --color-arcane-dim: #4A4580;
-  --color-glow: #9D8FE0;
-  --color-gold: #D4A843;
+  /* === Colors: clear night ===
+     Contrast ratios are against --color-void. */
+  --color-void: #0E1015;      /* page ground */
+  --color-ink: #161922;       /* surfaces: cards, panels, sheet */
+  --color-veil: #1E2230;      /* raised: hover, selected nav */
+  --color-mist: #2B3040;      /* visible borders and dividers */
+  --color-silver: #8E93A3;    /* captions — 6.2:1, smallest text colour allowed */
+  --color-pearl: #B8BCC8;     /* secondary text — 10:1 */
+  --color-read: #E4E2DC;      /* long reading text — 14.7:1, softer than pure light */
+  --color-light: #F3F1EC;     /* primary text — 16.9:1 */
 
-  /* Primary buttons: light text needs ≥4.5:1, which #7C6FCD (3.5:1) can't give */
-  --color-cta: #5B4FB0;       /* 5.5:1 with light */
-  --color-cta-hover: #6558BC; /* 4.8:1 with light */
+  /* The one accent: the yellow of the 1909 deck. Dark text on it (10.9:1). */
+  --color-gold: #F2C14E;
+  --color-gold-soft: #F7D27A;
+  --color-on-gold: #1A1405;
 
-  /* Orientation is not good/bad in tarot: gold = upright, moonlit silver-blue = reversed */
-  --color-upright: #D4A843;
-  --color-reversed: #A9B8DE;
+  /* Orientation is not good/bad in tarot: gold = upright, moonlit blue = reversed */
+  --color-upright: #F2C14E;
+  --color-reversed: #9DB4FF;
 
-  /* Semantic colours — only for dignity (strengthened / weakened) */
-  --color-positive: #6EC99F;
-  --color-negative: #E07A7A;
-
-  /* === Font Families === */
-  --font-serif: 'EB Garamond', Georgia, serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Semantic colours — dignity (strengthened / weakened) and errors */
+  --color-positive: #5FD1A0;
+  --color-negative: #F2877C;
 
   /* === Animations === */
-  --animate-fade-in: fadeIn 0.6s ease-out;
-  --animate-float: float 3s ease-in-out infinite;
+  --animate-fade-in: fadeIn 0.5s ease-out;
   --animate-shimmer: shimmer 1.8s ease-in-out infinite;
   --animate-sheet-up: sheetUp 0.28s ease-out;
 
@@ -41,11 +34,6 @@
   @keyframes fadeIn {
     0% { opacity: 0; transform: translateY(12px); }
     100% { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
   }
 
   /* Face-down cards breathing while the deck is being drawn */
@@ -60,54 +48,58 @@
   }
 }
 
+/* === Font Families (next/font variables set on <html> in layout.tsx) === */
+@theme inline {
+  --font-sans: var(--font-be-vietnam), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+}
+
 /* === Base Styles === */
 body {
-  background-color: #050508;
-  color: #E8EAF6;
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--color-void);
+  color: var(--color-light);
+  font-family: var(--font-be-vietnam), system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 16px;
-  line-height: 1.7;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* === Typography Scale === */
+/* Vietnamese stacks diacritics (ặ, ễ, ổ): give headings room above and below */
 h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
-  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
 p {
-  line-height: 1.75;
+  text-wrap: pretty;
 }
 
-/* === Serif Typography Enhancements === */
-.font-serif {
-  font-feature-settings: "liga" 1, "kern" 1;
-  letter-spacing: 0.01em;
+.font-display {
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
 }
 
 /* === Scrollbar Styling === */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0D0D14;
+  background: var(--color-void);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E1E2E;
-  border-radius: 3px;
+  background: var(--color-mist);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4A4580;
+  background: #3A4052;
 }
 
 /* === Focus Ring — visible on every keyboard-focusable element === */
 *:focus-visible {
-  outline: 2px solid #9D8FE0;
+  outline: 2px solid var(--color-gold);
   outline-offset: 3px;
 }
 
@@ -118,8 +110,8 @@ html:has(dialog[open]) {
 
 /* === Selection === */
 ::selection {
-  background-color: #4A4580;
-  color: #E8EAF6;
+  background-color: rgb(242 193 78 / 0.3);
+  color: var(--color-light);
 }
 
 /* === Reduced motion: no flips, pulses or slides === */

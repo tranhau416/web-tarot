@@ -47,6 +47,7 @@ export const SUIT_VI: Record<string, string> = {
 export interface SpreadDefinition {
   type: SpreadType;
   name: string;
+  /** Dòng phụ dưới tên kiểu trải (đã gồm số lá khi tên chưa nói rõ) */
   description: string;
   /** Vietnamese position labels, same order as the backend's POSITION_LABELS */
   positions: string[];
@@ -56,7 +57,7 @@ export const SPREADS: SpreadDefinition[] = [
   {
     type: "single",
     name: "Một lá",
-    description: "Câu trả lời trực diện cho lúc này",
+    description: "1 lá · trả lời nhanh",
     positions: ["Lá bài chính"],
   },
   {
@@ -68,7 +69,7 @@ export const SPREADS: SpreadDefinition[] = [
   {
     type: "horseshoe",
     name: "Móng ngựa",
-    description: "Hành trình bảy bước của một vấn đề",
+    description: "7 lá · hành trình của một vấn đề",
     positions: [
       "Quá khứ", "Hiện tại", "Ảnh hưởng tiềm ẩn", "Trở ngại",
       "Tác động bên ngoài", "Hy vọng & nỗi sợ", "Kết quả",
@@ -77,7 +78,7 @@ export const SPREADS: SpreadDefinition[] = [
   {
     type: "celtic_cross",
     name: "Celtic Cross",
-    description: "Nhìn sâu vào một tình huống phức tạp",
+    description: "10 lá · nhìn sâu vào tình huống",
     positions: [
       "Tình huống hiện tại", "Thử thách cắt ngang", "Gốc rễ", "Quá khứ", "Mục tiêu",
       "Tương lai gần", "Bản thân", "Môi trường xung quanh", "Hy vọng & nỗi sợ", "Kết quả",

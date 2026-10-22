@@ -2,7 +2,7 @@ import { STRINGS } from "@/app/lib/strings"
 
 interface DrawButtonProps {
   onClick: () => void
-  /** Dòng phụ, ví dụ "Ba lá · Quá khứ · Hiện tại · Tương lai" */
+  /** Tên kiểu trải đang chọn, ví dụ "Ba lá" */
   detail?: string
 }
 
@@ -11,15 +11,13 @@ export default function DrawButton({ onClick, detail }: DrawButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full max-w-sm mx-auto flex flex-col items-center justify-center
-        py-3 px-6 rounded-2xl font-medium text-base transition-colors
-        bg-cta hover:bg-cta-hover text-light shadow-lg shadow-arcane/30"
+      className="flex h-14 w-full items-center justify-center gap-2.5 rounded-[14px] bg-gold px-6
+        text-lg font-semibold text-on-gold transition-colors hover:bg-gold-soft"
     >
-      <span className="flex items-center gap-2 text-lg">
-        <span aria-hidden="true" className="text-gold">✦</span>
-        {STRINGS.DRAW}
-      </span>
-      {detail && <span className="text-sm text-light font-normal">{detail}</span>}
+      {detail ? `${STRINGS.DRAW} · ${detail}` : STRINGS.DRAW}
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M4 10h11M11 5l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </button>
   )
 }

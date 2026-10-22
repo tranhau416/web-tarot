@@ -78,7 +78,7 @@
         ├── components/
         │   ├── LegalGate.tsx   # Cổng xác nhận 18+
         │   ├── SpreadBoard.tsx # Bàn trải theo đúng hình học (Celtic Cross, móng ngựa…) + chú giải
-        │   ├── CardSheet.tsx   # <dialog> chi tiết lá (bottom sheet / ngăn kéo)
+        │   ├── CardSheet.tsx   # <dialog> chi tiết lá trên điện thoại (desktop hiện ngay dưới bàn trải)
         │   ├── InterpretationPanel.tsx  # Nội dung chi tiết một lá
         │   ├── AIReading.tsx   # Khu lời đọc (trạng thái, dừng, hành động)
         │   ├── ReadingText.tsx # Markdown nhẹ cho lời đọc

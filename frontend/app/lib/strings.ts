@@ -16,11 +16,15 @@ export const STRINGS = {
   GATE_REMEMBERED: "Lựa chọn được ghi nhớ trên trình duyệt này.",
 
   // Hero & form
+  NAV_READ: "Trải bài",
+  HERO_EYEBROW: "Bộ Rider-Waite-Smith, bản in 1909",
+  HERO_TITLE: "Hỏi điều bạn đang băn khoăn.",
   HERO_SUBTITLE:
-    "Đặt một câu hỏi, chọn kiểu trải bài và rút bài từ bộ Rider-Waite-Smith in năm 1909. Mỗi lá được chọn bằng nguồn ngẫu nhiên lượng tử.",
+    "Chọn kiểu trải, rút bài và đọc lời giải bằng tiếng Việt. Mỗi lá được chọn bằng một nguồn ngẫu nhiên lượng tử.",
+  HERO_CAPTION: "Chàng Khờ · Ngôi Sao · Thế Giới — Pamela Colman Smith, 1909",
   INTENTION_LABEL: "Câu hỏi của bạn",
-  INTENTION_OPTIONAL: "không bắt buộc",
-  INTENTION_PLACEHOLDER: "Bạn muốn hỏi điều gì với những lá bài?",
+  INTENTION_OPTIONAL: "Không bắt buộc",
+  INTENTION_PLACEHOLDER: "Ví dụ: Công việc của tôi trong ba tháng tới sẽ ra sao?",
   TOPICS_LABEL: "Gợi ý chủ đề",
   SPREAD_LABEL: "Kiểu trải bài",
   DRAW: "Rút bài",
@@ -28,7 +32,7 @@ export const STRINGS = {
   // Result
   RESULT_FALLBACK_TITLE: "Trải bài của bạn",
   DRAWING: "Đang xáo và rút bài…",
-  TAP_HINT: "Chọn một lá để xem ý nghĩa chi tiết",
+  TAP_HINT: "Chọn một lá để xem chi tiết",
   CARDS_HEADING: "Các lá bài",
   LEGEND_HEADING: "Vị trí các lá",
   DOMINANT_ELEMENT: "Nguyên tố chủ đạo",
@@ -40,8 +44,9 @@ export const STRINGS = {
   // Card detail
   UPRIGHT: "Thuận",
   REVERSED: "Ngược",
-  MEANING: "Ý nghĩa",
-  NEIGHBOURS: "Tương tác với các lá bên cạnh",
+  MEANING_UPRIGHT: "Ý nghĩa khi thuận",
+  MEANING_REVERSED: "Ý nghĩa khi ngược",
+  NEIGHBOURS: "Lá bên cạnh",
   TIMING: "Thời điểm",
   ASTROLOGY: "Chiêm tinh",
   TECHNICAL: "Chi tiết kỹ thuật",
@@ -59,6 +64,7 @@ export const STRINGS = {
   // Actions
   STOP: "Dừng đọc",
   COPY: "Sao chép lời đọc",
+  COPY_SHORT: "Sao chép",
   COPIED: "Đã sao chép",
   NEW_READING: "Rút bài mới",
   RETRY: "Thử lại",

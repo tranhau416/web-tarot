@@ -4,10 +4,10 @@ import { Fragment, type ReactNode } from "react"
 function renderInline(line: string): ReactNode[] {
   return line.split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*)/g).map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
-      return <strong key={i} className="text-light font-semibold">{part.slice(2, -2)}</strong>
+      return <strong key={i} className="font-semibold text-light">{part.slice(2, -2)}</strong>
     }
     if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
-      return <em key={i} className="text-glow">{part.slice(1, -1)}</em>
+      return <em key={i} className="italic text-light">{part.slice(1, -1)}</em>
     }
     return <Fragment key={i}>{part}</Fragment>
   })
@@ -23,10 +23,10 @@ function renderBlocks(text: string): ReactNode[] {
     const items = bullets
     bullets = []
     blocks.push(
-      <ul key={`ul-${blocks.length}`} className="list-none space-y-2 pl-1">
+      <ul key={`ul-${blocks.length}`} className="flex flex-col gap-3.5">
         {items.map((item, i) => (
-          <li key={i} className="flex gap-2">
-            <span aria-hidden="true" className="text-gold select-none">✦</span>
+          <li key={i} className="flex gap-3.5">
+            <span aria-hidden="true" className="mt-[0.72em] h-1.5 w-1.5 flex-none rotate-45 bg-gold" />
             <span>{renderInline(item)}</span>
           </li>
         ))}
@@ -45,7 +45,7 @@ function renderBlocks(text: string): ReactNode[] {
     if (heading) {
       flushBullets()
       blocks.push(
-        <h3 key={`h-${blocks.length}`} className="font-serif text-xl text-light pt-3">
+        <h3 key={`h-${blocks.length}`} className="pt-3 text-[19px] sm:text-xl font-semibold leading-snug text-light">
           {heading[1].replace(/\*\*/g, "")}
         </h3>,
       )
@@ -65,10 +65,10 @@ function renderBlocks(text: string): ReactNode[] {
   return blocks
 }
 
-/** Lời đọc bài: chữ serif, độ rộng dòng ~65 ký tự để dễ đọc. */
+/** Lời đọc bài: Be Vietnam Pro 18px, giãn dòng 1.75, tối đa ~66 ký tự mỗi dòng. */
 export default function ReadingText({ text, children }: { text: string; children?: ReactNode }) {
   return (
-    <div className="max-w-[65ch] font-serif text-lg text-pearl leading-relaxed space-y-4">
+    <div className="flex max-w-[66ch] flex-col gap-4 text-[17px] sm:text-lg leading-[1.75] text-read">
       {renderBlocks(text)}
       {children}
     </div>

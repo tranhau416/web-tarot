@@ -31,7 +31,7 @@ function Checkbox({ id, checked, onChange, children }: {
   children: React.ReactNode
 }) {
   return (
-    <label htmlFor={id} className="flex items-start gap-3 cursor-pointer group py-1">
+    <label htmlFor={id} className="flex items-start gap-3 cursor-pointer group py-1.5">
       <input
         id={id}
         type="checkbox"
@@ -41,17 +41,17 @@ function Checkbox({ id, checked, onChange, children }: {
       />
       <span
         aria-hidden="true"
-        className={`mt-0.5 w-5 h-5 flex-shrink-0 rounded border-2 flex items-center justify-center transition-colors
-          peer-focus-visible:ring-2 peer-focus-visible:ring-glow peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-ink
-          ${checked ? "bg-arcane border-arcane" : "border-silver group-hover:border-glow"}`}
+        className={`mt-0.5 w-5 h-5 flex-shrink-0 rounded-md border-2 flex items-center justify-center transition-colors
+          peer-focus-visible:ring-2 peer-focus-visible:ring-gold peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-ink
+          ${checked ? "bg-gold border-gold" : "border-silver group-hover:border-gold"}`}
       >
         {checked && (
-          <svg className="w-3 h-3 text-light" viewBox="0 0 12 12">
+          <svg className="w-3 h-3 text-on-gold" viewBox="0 0 12 12">
             <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
       </span>
-      <span className="text-pearl text-sm leading-snug">{children}</span>
+      <span className="text-light text-[15px] leading-snug">{children}</span>
     </label>
   )
 }
@@ -84,9 +84,9 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
       </div>
 
       {!confirmed && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/80 backdrop-blur-sm px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-void/80 backdrop-blur-sm px-4 py-6">
           <div
-            className="bg-ink border border-mist rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-fade-in"
+            className="bg-ink border border-mist rounded-[20px] p-6 sm:p-8 max-w-md w-full shadow-2xl animate-fade-in"
             role="dialog"
             aria-modal="true"
             aria-labelledby="legal-gate-title"
@@ -95,12 +95,12 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
             <div className="flex justify-center mb-5">
               <BrandMark className="w-14 h-14" />
             </div>
-            <h1 id="legal-gate-title" className="font-serif text-3xl text-light text-center mb-1">
+            <h1 id="legal-gate-title" className="font-display text-3xl font-medium text-light text-center mb-1.5">
               {STRINGS.GATE_TITLE}
             </h1>
-            <p className="text-silver text-sm text-center mb-5">{STRINGS.GATE_SUBTITLE}</p>
+            <p className="text-pearl text-[15px] text-center mb-5">{STRINGS.GATE_SUBTITLE}</p>
 
-            <p id="legal-gate-body" className="text-pearl/90 text-sm leading-relaxed bg-veil border border-mist rounded-xl p-4 mb-5">
+            <p id="legal-gate-body" className="text-read text-[15px] leading-relaxed bg-void border border-mist rounded-xl p-4 mb-5">
               {STRINGS.GATE_BODY}
             </p>
 
@@ -117,13 +117,13 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
               type="button"
               onClick={handleConfirm}
               disabled={!age || !fun}
-              className="w-full py-3 px-6 rounded-xl font-medium transition-colors
-                bg-cta hover:bg-cta-hover text-light shadow-lg shadow-arcane/25
-                disabled:bg-mist disabled:text-silver disabled:shadow-none disabled:cursor-not-allowed"
+              className="w-full h-13 px-6 rounded-[14px] text-base font-semibold transition-colors
+                bg-gold hover:bg-gold-soft text-on-gold
+                disabled:bg-veil disabled:text-silver disabled:cursor-not-allowed"
             >
               {STRINGS.GATE_ENTER}
             </button>
-            <p className="text-silver text-xs text-center mt-4">{STRINGS.GATE_REMEMBERED}</p>
+            <p className="text-silver text-sm text-center mt-4">{STRINGS.GATE_REMEMBERED}</p>
           </div>
         </div>
       )}

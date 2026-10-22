@@ -1,20 +1,11 @@
 "use client"
 
 import Image from "next/image"
-import { useState, type ReactNode } from "react"
+import { useState } from "react"
 import { OrientationTag, cardTitle, positionLabel } from "@/app/components/SpreadBoard"
 import { ELEMENT_VI, QUANTUM_SOURCE_LABELS, SUIT_VI, ZODIAC_MODE_VI } from "@/app/lib/constants"
 import { STRINGS } from "@/app/lib/strings"
 import type { CardInterpretation, InterpretationResult } from "@/app/lib/types"
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-silver mb-2">{title}</h3>
-      {children}
-    </section>
-  )
-}
 
 function capitalize(text: string): string {
   return text ? text[0].toUpperCase() + text.slice(1) : text
@@ -25,21 +16,27 @@ function DignityNote({ card }: { card: CardInterpretation }) {
   const tone = w > 0 ? "text-positive" : w < 0 ? "text-negative" : "text-silver"
   const icon = w > 0 ? "▲" : w < 0 ? "▼" : "●"
   return (
-    <p className="flex items-start gap-2 text-base text-pearl">
+    <span className="flex items-start gap-2">
       <span aria-hidden="true" className={`${tone} text-xs mt-1.5`}>{icon}</span>
       <span>{capitalize(card.dignity_label_vi)}.</span>
-    </p>
+    </span>
   )
 }
 
 interface InterpretationPanelProps {
   card: CardInterpretation
   interpretation: InterpretationResult
+  /**
+   * sheet: trong bảng chi tiết trên điện thoại — có ảnh lá, tiêu đề là nhãn của dialog.
+   * inline: ngay dưới bàn trải trên desktop — lá đã hiện trên bàn nên không lặp ảnh.
+   */
+  variant?: "sheet" | "inline"
 }
 
 /** Chi tiết một lá: ý nghĩa trước, kỹ thuật (byte, điểm số) thu gọn ở cuối. */
-export default function InterpretationPanel({ card, interpretation }: InterpretationPanelProps) {
+export default function InterpretationPanel({ card, interpretation, variant = "sheet" }: InterpretationPanelProps) {
   const [imageFailed, setImageFailed] = useState(false)
+  const inline = variant === "inline"
   const reversed = card.orientation === "reversed"
   const keywords = reversed
     ? (card.keywords_reversed_vi.length ? card.keywords_reversed_vi : card.keywords_reversed)
@@ -50,79 +47,105 @@ export default function InterpretationPanel({ card, interpretation }: Interpreta
   const astro = card.astro_decan_vi || card.astro_decan
   const timingRange = card.timing.range_vi || card.timing.timing_range
   const timingNotes = card.timing.notes_vi
+  const suitLine = `${SUIT_VI[card.suit] ?? card.suit}${element ? ` · ${element}` : ""}`
+  // Giữ thứ bậc tiêu đề: trong dialog tên lá là h2, ngay dưới bàn trải là h3
+  const SubHeading = inline ? "h4" : "h3"
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-4">
-        {card.image_url && !imageFailed && (
-          <div className="relative w-24 sm:w-28 aspect-[3/5] flex-shrink-0 rounded-lg overflow-hidden border border-mist shadow-lg">
-            <Image
-              src={card.image_url}
-              alt={`${card.card_name}${reversed ? ` (${STRINGS.REVERSED.toLowerCase()})` : ""}`}
-              fill
-              unoptimized
-              sizes="112px"
-              className={`object-cover ${reversed ? "rotate-180" : ""}`}
-              onError={() => setImageFailed(true)}
-            />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="text-sm text-silver">
-            {card.position_index + 1} · {positionLabel(card, interpretation.spread_type)}
+    <div className="flex flex-col gap-6">
+      {inline ? (
+        <div aria-live="polite" className="flex flex-col gap-0.5">
+          <h3 className="font-display text-[28px] font-medium leading-tight text-light">{cardTitle(card)}</h3>
+          <p className="text-[15px] text-pearl">
+            {card.name_vi ? `${card.card_name} · ` : ""}
+            {suitLine}
           </p>
-          <h2 id="card-detail-title" className="font-serif text-2xl sm:text-3xl text-light leading-tight mt-0.5">
-            {cardTitle(card)}
-          </h2>
-          {card.name_vi && <p className="font-serif italic text-base text-silver">{card.card_name}</p>}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <OrientationTag reversed={reversed} />
-            <span className="text-sm text-silver">
-              {SUIT_VI[card.suit] ?? card.suit}
-              {element && ` · ${element}`}
-            </span>
+        </div>
+      ) : (
+        <div className="flex items-start gap-4">
+          {card.image_url && !imageFailed && (
+            <div className={`relative w-24 sm:w-28 aspect-[3/5] flex-shrink-0 overflow-hidden rounded-[10px] border-[1.5px]
+              ${reversed ? "border-reversed/55" : "border-upright/50"}`}
+            >
+              <Image
+                src={card.image_url}
+                alt={`${card.card_name}${reversed ? ` (${STRINGS.REVERSED.toLowerCase()})` : ""}`}
+                fill
+                unoptimized
+                sizes="112px"
+                className={`object-cover ${reversed ? "rotate-180" : ""}`}
+                onError={() => setImageFailed(true)}
+              />
+            </div>
+          )}
+          <div className="min-w-0 flex-1 flex flex-col gap-1">
+            <p className="text-sm text-silver">
+              {card.position_index + 1} · {positionLabel(card, interpretation.spread_type)}
+            </p>
+            <h2 id="card-detail-title" className="font-display text-3xl font-medium leading-tight text-light">
+              {cardTitle(card)}
+            </h2>
+            {card.name_vi && <p className="text-[15px] text-pearl">{card.card_name}</p>}
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <OrientationTag reversed={reversed} />
+              <span className="text-sm text-pearl">{suitLine}</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {keywords.length > 0 && (
-        <Section title={`${STRINGS.MEANING} (${reversed ? STRINGS.REVERSED : STRINGS.UPRIGHT})`}>
+        <section className="flex flex-col gap-2.5">
+          <SubHeading className="text-[15px] font-semibold text-pearl">
+            {reversed ? STRINGS.MEANING_REVERSED : STRINGS.MEANING_UPRIGHT}
+          </SubHeading>
           <ul className="flex flex-wrap gap-2">
             {keywords.map((kw) => (
               <li
                 key={kw}
-                className={`rounded-full border px-3 py-1 text-sm text-light ${reversed ? "border-reversed/40 bg-reversed/10" : "border-upright/40 bg-upright/10"}`}
+                className={`rounded-full border px-3 py-1.5 text-[15px] leading-tight text-light
+                  ${reversed ? "border-reversed/35 bg-reversed/10" : "border-upright/35 bg-upright/10"}`}
               >
                 {kw}
               </li>
             ))}
           </ul>
-        </Section>
+        </section>
       )}
 
-      {hasNeighbours && (
-        <Section title={STRINGS.NEIGHBOURS}>
-          <DignityNote card={card} />
-        </Section>
-      )}
+      <dl
+        className={`text-base leading-relaxed
+          ${inline ? "grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-4 gap-y-3 text-[15px]" : "flex flex-col gap-3.5"}`}
+      >
+        <div className={inline ? "contents" : "flex flex-col gap-0.5"}>
+          <dt className={inline ? "text-silver" : "text-[15px] font-semibold text-pearl"}>{STRINGS.TIMING}</dt>
+          <dd className="text-light">
+            {capitalize(timingRange)}.
+            {timingNotes && <span className="block text-pearl">{timingNotes}</span>}
+          </dd>
+        </div>
+        {hasNeighbours && (
+          <div className={inline ? "contents" : "flex flex-col gap-0.5"}>
+            <dt className={inline ? "text-silver" : "text-[15px] font-semibold text-pearl"}>{STRINGS.NEIGHBOURS}</dt>
+            <dd className="text-light"><DignityNote card={card} /></dd>
+          </div>
+        )}
+        {(astro || zodiac) && (
+          <div className={inline ? "contents" : "flex flex-col gap-0.5"}>
+            <dt className={inline ? "text-silver" : "text-[15px] font-semibold text-pearl"}>{STRINGS.ASTROLOGY}</dt>
+            <dd className="text-light">
+              {astro}
+              {zodiac && <span className="text-pearl">{astro ? " · " : ""}Cung {zodiac.toLowerCase()}</span>}
+            </dd>
+          </div>
+        )}
+      </dl>
 
-      <Section title={STRINGS.TIMING}>
-        <p className="font-serif text-lg text-light">{capitalize(timingRange)}</p>
-        {timingNotes && <p className="mt-1 text-base text-pearl leading-relaxed">{timingNotes}</p>}
-      </Section>
-
-      {(astro || zodiac) && (
-        <Section title={STRINGS.ASTROLOGY}>
-          <p className="text-base text-pearl">
-            {astro}
-            {zodiac && <span className="text-silver">{astro ? " · " : ""}Cung {zodiac.toLowerCase()}</span>}
-          </p>
-        </Section>
-      )}
-
-      <details className="group rounded-lg border border-mist px-4 py-3">
-        <summary className="cursor-pointer text-sm text-silver hover:text-pearl">{STRINGS.TECHNICAL}</summary>
-        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm font-mono text-pearl">
+      <details className="rounded-xl border border-mist">
+        <summary className="flex min-h-11 cursor-pointer items-center px-4 text-[15px] text-pearl hover:text-light">
+          {STRINGS.TECHNICAL}
+        </summary>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 px-4 pb-4 text-sm tabular-nums text-light">
           <dt className="text-silver">Elemental dignity</dt>
           <dd>{card.dignity_weight >= 0 ? "+" : ""}{card.dignity_weight.toFixed(2)}</dd>
           <dt className="text-silver">{STRINGS.ENTROPY_SOURCE}</dt>
