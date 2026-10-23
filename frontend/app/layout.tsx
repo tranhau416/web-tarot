@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Fraunces } from "next/font/google";
+import { Be_Vietnam_Pro, Fraunces, Nunito, VT323 } from "next/font/google";
 import Link from "next/link";
 import BrandMark from "./components/BrandMark";
 import LegalGate from "./components/LegalGate";
 import NavLink from "./components/NavLink";
+import { ThemeToggle } from "./components/ThemePicker";
 import { STRINGS } from "./lib/strings";
+import { THEME_INIT_SCRIPT } from "./lib/themeScript";
 import "./globals.css";
 
 // Be Vietnam Pro được vẽ riêng cho tiếng Việt: chữ thường cao, dấu chồng tách bạch.
@@ -24,6 +26,24 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
+// Giao diện Pixel hồng: VT323 (font pixel duy nhất có đủ dấu tiếng Việt) cho tiêu đề và nút,
+// Nunito tròn, dễ đọc cho chữ dài. Không preload vì giao diện mặc định không dùng đến.
+const vt323 = VT323({
+  subsets: ["latin", "vietnamese"],
+  weight: "400",
+  variable: "--font-vt323",
+  display: "swap",
+  preload: false,
+});
+
+const nunito = Nunito({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "600", "700"],
+  variable: "--font-nunito",
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "Sacred Tarot — Trải bài Tarot bằng ngẫu nhiên lượng tử",
   description:
@@ -36,7 +56,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${beVietnam.variable} ${fraunces.variable}`} suppressHydrationWarning>
+    <html
+      lang="vi"
+      data-theme="night"
+      className={`${beVietnam.variable} ${fraunces.variable} ${vt323.variable} ${nunito.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="bg-void text-light antialiased min-h-screen">
         <LegalGate>
           <header className="fixed top-0 left-0 right-0 z-40 border-b border-veil bg-void/90 backdrop-blur-sm">
@@ -52,6 +80,7 @@ export default function RootLayout({
                 <span className="font-display text-xl sm:text-[22px] font-medium whitespace-nowrap">{STRINGS.BRAND}</span>
               </Link>
               <div className="flex items-center gap-1">
+                <ThemeToggle />
                 <div className="hidden sm:block">
                   <NavLink href="/">{STRINGS.NAV_READ}</NavLink>
                 </div>

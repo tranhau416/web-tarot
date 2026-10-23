@@ -13,6 +13,8 @@ export const STRINGS = {
   GATE_CHECK_AGE: "Tôi xác nhận mình đủ 18 tuổi",
   GATE_CHECK_FUN: "Tôi hiểu đây là nội dung giải trí",
   GATE_ENTER: "Bước vào",
+  THEME_LABEL: "Chọn giao diện",
+  THEME_SWITCH_TO: "Đổi sang giao diện",
   GATE_REMEMBERED: "Lựa chọn được ghi nhớ trên trình duyệt này.",
 
   // Hero & form

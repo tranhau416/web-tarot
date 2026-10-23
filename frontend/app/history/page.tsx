@@ -32,7 +32,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", time
 
 function HistoryItem({ entry }: { entry: HistoryEntry }) {
   return (
-    <article className="rounded-[20px] border border-mist bg-ink p-5 sm:p-7">
+    <article className="rounded-[20px] border border-mist bg-ink p-5 sm:p-7 pixel:pixel-shadow">
       <p className="text-sm text-silver">
         <time dateTime={entry.createdAt}>{DATE_FORMAT.format(new Date(entry.createdAt))}</time>
         {" · "}
@@ -117,11 +117,11 @@ export default function HistoryPage() {
       </div>
 
       {entries && entries.length === 0 && (
-        <div className="rounded-[20px] border border-mist bg-ink p-8 text-center">
+        <div className="rounded-[20px] border border-mist bg-ink p-8 text-center pixel:pixel-shadow">
           <p className="text-read">{STRINGS.HISTORY_EMPTY}</p>
           <Link
             href="/"
-            className="mt-5 inline-flex h-12 items-center rounded-xl bg-gold px-5 font-semibold text-on-gold transition-colors hover:bg-gold-soft"
+            className="ui-font mt-5 inline-flex h-12 items-center rounded-xl bg-gold px-5 font-semibold text-on-gold transition-colors hover:bg-gold-soft pixel:border-2 pixel:border-mist pixel:pixel-shadow-sm"
           >
             {STRINGS.DRAW}
           </Link>

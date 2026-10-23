@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react"
 import BrandMark from "@/app/components/BrandMark"
+import ThemePicker from "@/app/components/ThemePicker"
 import { STORAGE_KEYS } from "@/app/lib/constants"
 import { STRINGS } from "@/app/lib/strings"
 
@@ -86,7 +87,7 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
       {!confirmed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-void/80 backdrop-blur-sm px-4 py-6">
           <div
-            className="bg-ink border border-mist rounded-[20px] p-6 sm:p-8 max-w-md w-full shadow-2xl animate-fade-in"
+            className="bg-ink border border-mist rounded-[20px] p-6 sm:p-8 max-w-md w-full shadow-2xl pixel:pixel-shadow-lg animate-fade-in"
             role="dialog"
             aria-modal="true"
             aria-labelledby="legal-gate-title"
@@ -104,6 +105,10 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
               {STRINGS.GATE_BODY}
             </p>
 
+            <div className="mb-5">
+              <ThemePicker />
+            </div>
+
             <div className="space-y-2 mb-6">
               <Checkbox id="check-age" checked={age} onChange={setAge}>
                 {STRINGS.GATE_CHECK_AGE}
@@ -118,7 +123,7 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
               onClick={handleConfirm}
               disabled={!age || !fun}
               className="w-full h-13 px-6 rounded-[14px] text-base font-semibold transition-colors
-                bg-gold hover:bg-gold-soft text-on-gold
+                bg-gold hover:bg-gold-soft text-on-gold pixel:border-2 pixel:border-mist pixel:pixel-shadow pixel:disabled:shadow-none
                 disabled:bg-veil disabled:text-silver disabled:cursor-not-allowed"
             >
               {STRINGS.GATE_ENTER}

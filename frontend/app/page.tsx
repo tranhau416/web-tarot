@@ -23,10 +23,12 @@ import { DESKTOP_QUERY, useMediaQuery } from "@/app/lib/useMediaQuery";
 import { useTarotReading } from "@/app/lib/useTarotReading";
 import type { DrawResponse, SpreadType } from "@/app/lib/types";
 
+const PIXEL_BUTTON =
+  "pixel:border-2 pixel:border-mist pixel:pixel-shadow-sm pixel:active:translate-x-0.5 pixel:active:translate-y-0.5 pixel:active:shadow-none";
 const BUTTON_PRIMARY =
-  "inline-flex h-12 items-center justify-center rounded-xl bg-gold px-5 text-base font-semibold text-on-gold transition-colors hover:bg-gold-soft";
+  `ui-font inline-flex h-12 items-center justify-center rounded-xl bg-gold px-5 text-base font-semibold text-on-gold transition-colors hover:bg-gold-soft ${PIXEL_BUTTON}`;
 const BUTTON_SECONDARY =
-  "inline-flex h-12 items-center justify-center rounded-xl border border-mist px-5 text-base font-medium text-light transition-colors hover:bg-veil";
+  `ui-font inline-flex h-12 items-center justify-center rounded-xl border border-mist bg-transparent px-5 text-base font-medium text-light transition-colors hover:bg-veil pixel:bg-ink ${PIXEL_BUTTON}`;
 
 const DATE_FORMAT = new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" });
 
@@ -147,7 +149,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-6 sm:rounded-[20px] sm:border sm:border-mist sm:bg-ink sm:p-7">
+            <div className="flex flex-col gap-6 sm:rounded-[20px] sm:border sm:border-mist sm:bg-ink sm:p-7 sm:pixel:pixel-shadow">
               <IntentionInput value={intention} onChange={setIntention} />
               <SpreadSelector selected={spreadType} onChange={setSpreadType} />
               {/* Nút rút bài luôn trong tầm tay trên điện thoại */}
@@ -226,7 +228,7 @@ export default function Home() {
           <section
             aria-labelledby="cards-heading"
             className="flex min-w-0 flex-[1_1_440px] max-w-full lg:max-w-[520px] flex-col gap-5 sm:gap-6
-              lg:rounded-3xl lg:border lg:border-mist lg:bg-ink lg:p-7"
+              lg:rounded-3xl lg:border lg:border-mist lg:bg-ink lg:p-7 lg:pixel:pixel-shadow"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id="cards-heading" className="sr-only lg:not-sr-only text-lg font-semibold text-light">

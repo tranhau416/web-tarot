@@ -35,14 +35,14 @@ export default function CardSheet({ open, onClose, onPrev, onNext, children }: C
         if (e.target === e.currentTarget) onClose() // bấm ra nền mờ
       }}
       className="m-0 mt-auto w-full max-w-full max-h-[90dvh] overflow-y-auto overscroll-contain
-        rounded-t-[22px] border-t border-mist bg-ink p-0 text-light shadow-[0_-20px_40px_rgba(0,0,0,0.45)] animate-sheet-up
-        backdrop:bg-black/70 backdrop:backdrop-blur-[2px]
+        rounded-t-[22px] border-t border-mist bg-ink p-0 text-light shadow-[0_-20px_40px_rgba(0,0,0,0.45)] pixel:shadow-none animate-sheet-up
+        backdrop:bg-[var(--scrim)] backdrop:backdrop-blur-[2px]
         lg:ml-auto lg:mt-0 lg:h-full lg:max-h-full lg:w-[30rem] lg:rounded-none lg:rounded-l-[22px] lg:border-l lg:animate-fade-in"
     >
       {open && (
         <div className="flex min-h-full flex-col">
           <div className="sticky top-0 z-10 flex h-[52px] flex-none items-center justify-center border-b border-mist bg-ink/95 backdrop-blur-sm">
-            <span aria-hidden="true" className="h-1 w-10 rounded-full bg-[#3A4052] lg:hidden" />
+            <span aria-hidden="true" className="h-1 w-10 rounded-full bg-silver/50 lg:hidden" />
             <button
               type="button"
               onClick={onClose}

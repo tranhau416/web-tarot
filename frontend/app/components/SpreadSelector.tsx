@@ -30,7 +30,7 @@ export default function SpreadSelector({ selected, onChange }: SpreadSelectorPro
                 className={`flex h-full flex-col items-start gap-3 rounded-2xl border-[1.5px] p-3.5 sm:p-4 text-left transition-colors
                   peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-gold
                   ${isSelected
-                    ? "border-gold bg-gold/[0.08]"
+                    ? "border-gold bg-gold/[0.08] pixel:pixel-shadow-sm"
                     : "border-mist bg-ink sm:bg-void hover:border-pearl/40"
                   }`}
               >

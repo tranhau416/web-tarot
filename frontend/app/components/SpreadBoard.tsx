@@ -74,7 +74,7 @@ const CardSlot = memo(function CardSlot({ index, card, label, crossing, style, i
       style={{ transformStyle: "preserve-3d", transform: flipped ? "rotateY(180deg)" : "none" }}
     >
       <span
-        className={`absolute inset-0 block rounded-[10px] lg:rounded-xl overflow-hidden border border-mist bg-ink shadow-[0_10px_28px_rgba(0,0,0,0.5)]
+        className={`absolute inset-0 block rounded-[10px] lg:rounded-xl overflow-hidden border border-mist bg-ink shadow-[var(--card-shadow)]
           ${card ? "" : "animate-shimmer"}`}
         style={{ ...FACE_STYLE, animationDelay: `${index * 120}ms` }}
       >
@@ -82,7 +82,7 @@ const CardSlot = memo(function CardSlot({ index, card, label, crossing, style, i
       </span>
       {card && (
         <span
-          className={`absolute inset-0 block rounded-[10px] lg:rounded-xl overflow-hidden border-[1.5px] bg-ink shadow-[0_10px_28px_rgba(0,0,0,0.5)]
+          className={`absolute inset-0 block rounded-[10px] lg:rounded-xl overflow-hidden border-[1.5px] bg-ink shadow-[var(--card-shadow)]
             ${isSelected ? "border-gold" : reversed ? "border-reversed/55" : "border-upright/50"}`}
           style={{ ...FACE_STYLE, transform: "rotateY(180deg)" }}
         >
@@ -249,7 +249,7 @@ export function SpreadLegend({ spreadType, cards, selectedIndex, opensDialog, on
                 aria-pressed={opensDialog ? undefined : selectedIndex === i}
                 className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors
                   ${!opensDialog && selectedIndex === i
-                    ? "border-gold bg-gold/[0.06]"
+                    ? "border-gold bg-gold/[0.06] pixel:pixel-shadow-sm"
                     : "border-mist bg-ink lg:bg-void hover:border-pearl/40"
                   }`}
               >

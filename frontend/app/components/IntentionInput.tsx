@@ -49,7 +49,7 @@ export default function IntentionInput({ value, onChange }: IntentionInputProps)
               aria-pressed={active}
               className={`h-10 rounded-full border px-4 text-[15px] transition-colors
                 ${active
-                  ? "border-gold bg-gold/10 text-light"
+                  ? "border-gold bg-gold/10 text-light pixel:pixel-shadow-sm"
                   : "border-mist text-pearl hover:border-pearl/50 hover:text-light"
                 }`}
             >

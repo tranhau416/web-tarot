@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Giao diện "Pixel hồng": <html data-theme="pixel">. Mặc định là "night". */
+@custom-variant pixel (&:where([data-theme="pixel"], [data-theme="pixel"] *));
+
 @theme {
   /* === Colors: clear night ===
      Contrast ratios are against --color-void. */
@@ -48,17 +51,68 @@
   }
 }
 
-/* === Font Families (next/font variables set on <html> in layout.tsx) === */
+/* === Font Families (next/font variables set on <html> in layout.tsx; each theme picks its own) === */
 @theme inline {
-  --font-sans: var(--font-be-vietnam), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--theme-font-body);
+  --font-display: var(--theme-font-display);
+}
+
+/* Hard pixel drop shadows — only used behind the `pixel:` variant */
+@utility pixel-shadow-sm {
+  box-shadow: 3px 3px 0 0 var(--color-mist);
+}
+@utility pixel-shadow {
+  box-shadow: 4px 4px 0 0 var(--color-mist);
+}
+@utility pixel-shadow-lg {
+  box-shadow: 6px 6px 0 0 var(--color-mist);
+}
+
+/* === Theme: clear night (default) — values not covered by @theme === */
+:root {
+  color-scheme: dark;
+  --theme-font-body: var(--font-be-vietnam), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --theme-font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --hero-glow: rgb(242 193 78 / 0.16);
+  --card-shadow: 0 10px 28px rgb(0 0 0 / 0.5);
+  --fan-shadow: 0 20px 44px rgb(0 0 0 / 0.55);
+  --scrim: rgb(0 0 0 / 0.7);
+}
+
+/* === Theme: pixel pink ===
+   Pastel pink ground, plum outlines, raspberry accent. Contrast against the ground:
+   text 13.6:1, captions 5.7:1, accent 4.9:1, white on accent buttons 5.9:1. */
+[data-theme="pixel"] {
+  color-scheme: light;
+  --color-void: #FFE3EF;
+  --color-ink: #FFF6FA;
+  --color-veil: #FFD0E4;
+  --color-mist: #4A2545;
+  --color-silver: #874278;
+  --color-pearl: #6B2F60;
+  --color-read: #3E2340;
+  --color-light: #34142F;
+  --color-gold: #C2185B;
+  --color-gold-soft: #A31550;
+  --color-on-gold: #FFFFFF;
+  --color-upright: #C2185B;
+  --color-reversed: #3F51B5;
+  --color-positive: #1E7B4B;
+  --color-negative: #B42318;
+
+  --theme-font-body: var(--font-nunito), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --theme-font-display: var(--font-vt323), ui-monospace, monospace;
+  --hero-glow: rgb(255 255 255 / 0.75);
+  --card-shadow: 3px 3px 0 0 var(--color-mist);
+  --fan-shadow: 5px 5px 0 0 var(--color-mist);
+  --scrim: rgb(74 37 69 / 0.45);
 }
 
 /* === Base Styles === */
 body {
   background-color: var(--color-void);
   color: var(--color-light);
-  font-family: var(--font-be-vietnam), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--theme-font-body);
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -94,7 +148,7 @@ p {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3A4052;
+  background: var(--color-silver);
 }
 
 /* === Focus Ring — visible on every keyboard-focusable element === */
@@ -110,8 +164,46 @@ html:has(dialog[open]) {
 
 /* === Selection === */
 ::selection {
-  background-color: rgb(242 193 78 / 0.3);
+  background-color: color-mix(in oklab, var(--color-gold) 30%, transparent);
   color: var(--color-light);
+}
+
+/* === Pixel theme: graph-paper ground, square corners, chunky outlines, pixel type ===
+   Unlayered rules, so they win over Tailwind's utilities without !important. */
+[data-theme="pixel"] body {
+  background-image:
+    linear-gradient(rgb(194 24 91 / 0.07) 2px, transparent 2px),
+    linear-gradient(90deg, rgb(194 24 91 / 0.07) 2px, transparent 2px);
+  background-size: 28px 28px;
+}
+[data-theme="pixel"] *,
+[data-theme="pixel"] *::before,
+[data-theme="pixel"] *::after,
+[data-theme="pixel"] dialog::backdrop {
+  border-radius: 0;
+}
+[data-theme="pixel"] [class~="border"],
+[data-theme="pixel"] [class*="border-[1.5px]"] { border-width: 2px; }
+[data-theme="pixel"] [class~="border-t"] { border-top-width: 2px; }
+[data-theme="pixel"] [class~="border-b"] { border-bottom-width: 2px; }
+[data-theme="pixel"] [class~="border-l"] { border-left-width: 2px; }
+@media (min-width: 640px) {
+  [data-theme="pixel"] [class~="sm:border"] { border-width: 2px; }
+}
+@media (min-width: 1024px) {
+  [data-theme="pixel"] [class~="lg:border"] { border-width: 2px; }
+}
+/* VT323 is the one pixel face with full Vietnamese diacritics. It runs small, so
+   font-size-adjust brings its x-height in line with the body text. Long text stays in Nunito. */
+[data-theme="pixel"] :is(button, label, legend, summary, .ui-font, .font-display) {
+  font-family: var(--theme-font-display);
+  font-size-adjust: 0.56;
+  font-synthesis: none;
+  letter-spacing: 0.01em;
+}
+[data-theme="pixel"] .font-display {
+  font-size-adjust: 0.5;
+  letter-spacing: 0.02em;
 }
 
 /* === Reduced motion: no flips, pulses or slides === */

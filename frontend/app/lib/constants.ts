@@ -4,6 +4,7 @@ import type { SpreadType } from "./types";
 export const STORAGE_KEYS = {
   ADULT_CONFIRMED: "tarot_adult_confirmed",
   HISTORY: "tarot_history_v1",
+  THEME: "tarot_theme_v1",
 } as const;
 
 /** Base delay (ms) before first card flips */
