@@ -8,17 +8,19 @@ Triển khai hai hệ thống diễn giải Tarot theo truyền thống Golden D
 
 A. Elemental Dignities Matrix
    - Xác định mức độ "cộng hưởng" giữa các nguyên tố của các lá bài
+   - Cùng nguyên tố (cộng hưởng mạnh): +1.0
    - Fire↔Air (bạn đồng minh): +1.0
    - Water↔Earth (bạn đồng minh): +1.0
    - Fire↔Water (đối kháng): -1.0
    - Air↔Earth (đối kháng): -1.0
-   - Same element / Spirit / Unknown: 0.0
+   - Fire↔Earth, Air↔Water / Spirit / Unknown: 0.0 (trung tính)
 
 B. Decan Timing
    - Cardinal → Weeks (1-4 tuần)
    - Fixed → Months (1-4 tháng)
    - Mutable → Days (3-21 ngày)
-   - None (Major Arcana) → Timeless
+   - Ace / Page (gốc nguyên tố, không có decan) → theo mùa của nguyên tố
+   - Major Arcana → Timeless
 """
 
 from __future__ import annotations
@@ -31,6 +33,14 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.data.vi import (
+    ELEMENT_VI,
+    astro_vi,
+    dignity_vi,
+    keywords_vi,
+    timing_notes_vi,
+    timing_vi,
+)
 from app.services.quantum_engine import DrawResult, DrawnCard
 
 logger = logging.getLogger(__name__)
@@ -43,7 +53,7 @@ logger = logging.getLogger(__name__)
 # Golden Dawn Elemental Dignity Matrix
 # Key: tuple(element_a, element_b) — lowercase
 # Value: dignity score
-# Pairs NOT in dict: neutral (same element = 0.0, Spirit/None = 0.0)
+# Same element = +1.0 (xử lý riêng); pairs NOT in dict / Spirit / None = 0.0
 DIGNITY_MATRIX: dict[tuple[str, str], float] = {
     # Fire ↔ Air: allied (dignified)
     ("fire", "air"):   1.0,
@@ -65,8 +75,8 @@ def calculate_dignity(element_a: Optional[str], element_b: Optional[str]) -> flo
     Tính Elemental Dignity score giữa 2 nguyên tố.
 
     Returns:
-        +1.0  = Dignified (allied elements)
-         0.0  = Neutral (same, spirit, or unknown)
+        +1.0  = Dignified (same or allied elements)
+         0.0  = Neutral (Fire/Earth, Air/Water, spirit, or unknown)
         -1.0  = Ill-Dignified (opposed elements)
     """
     if not element_a or not element_b:
@@ -75,11 +85,11 @@ def calculate_dignity(element_a: Optional[str], element_b: Optional[str]) -> flo
     a = element_a.lower().strip()
     b = element_b.lower().strip()
 
-    if a == b:
-        return 0.0  # Same element: neutral
-
     if a == "spirit" or b == "spirit":
         return 0.0  # Spirit: neutral với tất cả
+
+    if a == b:
+        return 1.0  # Cùng nguyên tố: củng cố mạnh (Golden Dawn)
 
     return DIGNITY_MATRIX.get((a, b), 0.0)
 
@@ -135,6 +145,14 @@ class TimingResult(BaseModel):
     timing_unit: str
     timing_range: str   # VD: "1-4 weeks"
     notes: str
+    range_vi: str = ""  # VD: "trong khoảng 1–4 tuần"
+    notes_vi: str = ""
+
+    def model_post_init(self, __context: Any) -> None:
+        if not self.range_vi:
+            self.range_vi = timing_vi(self.timing_unit, self.timing_range)
+        if not self.notes_vi:
+            self.notes_vi = timing_notes_vi(self.timing_unit, self.timing_range, self.zodiac_mode)
 
 
 # Mapping zodiac_mode → timing parameters
@@ -156,11 +174,21 @@ TIMING_MAP: dict[str, dict[str, Any]] = {
     },
 }
 
+# Ace & Page là "gốc" của nguyên tố, không thuộc decan nào → dùng mùa mà
+# cung Cardinal của nguyên tố đó mở ra (Aries/Cancer/Libra/Capricorn).
+SEASON_MAP: dict[str, tuple[str, str]] = {
+    "fire":  ("spring", "Aries"),
+    "water": ("summer", "Cancer"),
+    "air":   ("autumn", "Libra"),
+    "earth": ("winter", "Capricorn"),
+}
+
 
 def calculate_timing(
     card_name: str,
     zodiac_mode: Optional[str],
     arcana: str,
+    element: Optional[str] = None,
 ) -> TimingResult:
     """
     Tính Timing prediction cho một lá bài dựa vào zodiac_mode.
@@ -169,10 +197,26 @@ def calculate_timing(
         card_name:   Tên lá bài
         zodiac_mode: "cardinal" | "fixed" | "mutable" | None
         arcana:      "major" | "minor"
+        element:     Nguyên tố — dùng cho Ace/Page (không có zodiac_mode)
 
     Returns:
         TimingResult
     """
+    if arcana != "major" and not zodiac_mode:
+        season = SEASON_MAP.get((element or "").lower())
+        if season:
+            season_name, sign = season
+            return TimingResult(
+                card_name=card_name,
+                zodiac_mode=None,
+                timing_unit="season",
+                timing_range=f"within the coming {season_name}",
+                notes=(
+                    f"Aces and Pages are the roots of their element. Events take shape "
+                    f"in the season opened by {sign} ({season_name}), as the seed ripens."
+                ),
+            )
+
     if arcana == "major" or not zodiac_mode:
         return TimingResult(
             card_name=card_name,
@@ -212,7 +256,7 @@ def calculate_spread_timing(cards_data: list[dict]) -> list[TimingResult]:
 
     Args:
         cards_data: list[dict] — mỗi dict có keys:
-                    card_name, zodiac_mode (Optional), arcana
+                    card_name, zodiac_mode (Optional), arcana, element (Optional)
 
     Returns:
         list[TimingResult]
@@ -223,6 +267,7 @@ def calculate_spread_timing(cards_data: list[dict]) -> list[TimingResult]:
             card_name=card_data.get("card_name", "Unknown"),
             zodiac_mode=card_data.get("zodiac_mode"),
             arcana=card_data.get("arcana", "minor"),
+            element=card_data.get("element"),
         )
         results.append(result)
     return results
@@ -238,20 +283,27 @@ class CardInterpretation(BaseModel):
     position_index: int
     card_id: int
     card_name: str
+    name_vi: Optional[str] = None
     suit: str
     arcana: str
     element: Optional[str] = None
     orientation: str
     zodiac_mode: Optional[str] = None
     astro_decan: Optional[str] = None
+    astro_decan_vi: Optional[str] = None
     numerology_value: Optional[int] = None
     dignity_weight: float
+    dignity_label_vi: str = ""
     timing: TimingResult
     keywords_upright: list[str] = []
     keywords_reversed: list[str] = []
+    keywords_upright_vi: list[str] = []
+    keywords_reversed_vi: list[str] = []
     image_url: Optional[str] = None
     raw_quantum_byte: int
+    orientation_byte: Optional[int] = None
     position_label: Optional[str] = None
+    position_label_vi: Optional[str] = None
 
 
 class InterpretationResult(BaseModel):
@@ -261,7 +313,8 @@ class InterpretationResult(BaseModel):
     cards: list[CardInterpretation]
     overall_dignity_score: float    # trung bình dignity toàn spread
     dominant_element: str           # nguyên tố xuất hiện nhiều nhất
-    quantum_source: str             # "anu_qrng" | "random_org"
+    dominant_element_vi: str = ""
+    quantum_source: str             # "anu_qrng" | "random_org" | "os_entropy"
 
 
 # ---------------------------------------------------------------------------
@@ -316,6 +369,7 @@ async def interpret_spread(
             "card_name":  dc.card_name,
             "zodiac_mode": db_card.zodiac_mode if db_card else None,
             "arcana":      db_card.arcana if db_card else "minor",
+            "element":     dc.element,
         })
     timing_results = calculate_spread_timing(timing_inputs)
 
@@ -333,26 +387,42 @@ async def interpret_spread(
         keywords_rev: list[str] = []
         if db_card and db_card.metadata_json:
             meta = db_card.metadata_json
-            keywords_up  = meta.get("keywords_upright",  meta.get("keywords", []))
-            keywords_rev = meta.get("keywords_reversed", [])
+            # Chấp nhận cả key cũ ("upright_keywords" / "keywords") từ dữ liệu legacy
+            keywords_up = (
+                meta.get("keywords_upright")
+                or meta.get("upright_keywords")
+                or meta.get("keywords")
+                or []
+            )
+            keywords_rev = meta.get("keywords_reversed") or meta.get("reversed_keywords") or []
+            keywords_up_vi = meta.get("keywords_upright_vi") or keywords_vi(keywords_up)
+            keywords_rev_vi = meta.get("keywords_reversed_vi") or keywords_vi(keywords_rev)
+        else:
+            keywords_up_vi, keywords_rev_vi = [], []
 
         card_interp = CardInterpretation(
             position_index=dc.position_index,
             card_id=dc.card_id,
             card_name=dc.card_name,
+            name_vi=db_card.name_vi if db_card else None,
             suit=dc.suit,
             arcana=db_card.arcana if db_card else "minor",
             element=dc.element,
             orientation=dc.orientation,
             zodiac_mode=db_card.zodiac_mode if db_card else None,
             astro_decan=db_card.astro_decan if db_card else None,
+            astro_decan_vi=astro_vi(db_card.astro_decan) if db_card else None,
             numerology_value=db_card.numerology_value if db_card else None,
             dignity_weight=dignity,
+            dignity_label_vi=dignity_vi(dignity),
             timing=timing,
             keywords_upright=keywords_up,
             keywords_reversed=keywords_rev,
+            keywords_upright_vi=keywords_up_vi,
+            keywords_reversed_vi=keywords_rev_vi,
             image_url=db_card.image_url if db_card else None,
             raw_quantum_byte=dc.raw_quantum_byte,
+            orientation_byte=dc.orientation_byte,
         )
         card_interpretations.append(card_interp)
 
@@ -377,5 +447,6 @@ async def interpret_spread(
         cards=card_interpretations,
         overall_dignity_score=round(overall_dignity, 4),
         dominant_element=dominant_element,
+        dominant_element_vi=ELEMENT_VI.get(dominant_element, "không xác định"),
         quantum_source=draw_result.quantum_source,
     )

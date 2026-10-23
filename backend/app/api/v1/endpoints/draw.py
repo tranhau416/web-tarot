@@ -4,28 +4,32 @@ Tarot Web App - Draw API Endpoint
 backend/app/api/v1/endpoints/draw.py
 ============================================================
 
-Endpoint:
-  POST /api/v1/draw  — Rút bài Tarot với Quantum entropy
+Endpoints:
+  POST /api/v1/draw            — Rút bài Tarot với Quantum entropy (JSON)
+  POST /api/v1/draw/ai-stream  — Rút bài + stream lời đọc AI (SSE)
 
 Compliance:
   - Yêu cầu header X-Adult-Confirmed: true
-    (được enforce thêm ở middleware, nhưng cũng check ở đây)
+    (được enforce ở middleware, và kiểm tra lại ở đây — defense in depth)
 """
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+import orjson
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models import DrawLog, Session
+from app.data.vi import position_vi
+from app.models import DrawLog, Session, User
 from app.schemas.tarot import DrawRequest, DrawResponse
 from app.services import interpretation_service, quantum_engine
+from app.services.ai_reader_service import stream_reading
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/draw", tags=["draw"])
@@ -40,64 +44,65 @@ LEGAL_DISCLAIMER = (
     "appropriate professional services."
 )
 
-
-@router.post(
-    "",
-    response_model=DrawResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Perform a Tarot card reading",
-    description=(
-        "Rút bài Tarot sử dụng Quantum entropy từ ANU QRNG. "
-        "Trả về kết quả diễn giải với Elemental Dignities và Decan Timing. "
-        "**Yêu cầu header `X-Adult-Confirmed: true`** (Compliance Gate)."
-    ),
+AGE_VERIFICATION_DETAIL = (
+    "Age verification required. You must confirm you are 18+ to use this service."
 )
-async def draw_tarot(
-    request_body: DrawRequest,
-    request: Request,
+
+POSITION_LABELS: dict[str, list[str]] = {
+    "single": ["The Card"],
+    "three_card": ["Past", "Present", "Future"],
+    "horseshoe": [
+        "Past", "Present", "Hidden Influences", "Obstacles",
+        "External Influences", "Hopes & Fears", "Outcome",
+    ],
+    "celtic_cross": [
+        "Present Situation", "Crossing", "Root", "Past", "Crown",
+        "Near Future", "Self", "Environment", "Hopes & Fears", "Outcome",
+    ],
+}
+
+
+def require_adult_confirmation(
     x_adult_confirmed: str = Header(
         default="",
         alias="X-Adult-Confirmed",
         description="Phải là 'true' để xác nhận đủ 18 tuổi",
     ),
-    db: AsyncSession = Depends(get_db),
-) -> DrawResponse:
-    """
-    Main Tarot draw endpoint.
-
-    Flow:
-      1. Validate X-Adult-Confirmed header (Compliance Gate)
-      2. Xác định số lá bài cần rút
-      3. Gọi quantum_engine.draw_cards()
-      4. Gọi interpretation_service.interpret_spread()
-      5. Tạo Session record trong DB
-      6. Tạo DrawLog records cho mỗi card
-      7. Trả về DrawResponse với disclaimer bắt buộc
-    """
-
-    # --- Bước 1: Compliance Gate (kiểm tra kép, middleware là tuyến phòng thủ đầu) ---
+) -> None:
+    """Compliance Gate (lớp 2 — middleware là lớp 1)."""
     if x_adult_confirmed.strip().lower() != "true":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "detail": (
-                    "Age verification required. "
-                    "You must confirm you are 18+ to use this service."
-                ),
-                "compliance_gate": "adult_verification",
-            },
+            detail=AGE_VERIFICATION_DETAIL,
+            headers={"X-Compliance-Gate": "adult_verification"},
+        )
+
+
+def _sse(payload: dict) -> bytes:
+    return b"data: " + orjson.dumps(payload) + b"\n\n"
+
+
+async def _perform_draw(request_body: DrawRequest, db: AsyncSession) -> DrawResponse:
+    """
+    Luồng rút bài dùng chung cho /draw và /draw/ai-stream.
+
+      1. Validate user_id (nếu có)
+      2. Quantum draw → 3. Interpret (dignities + timing) → 4. Gắn nhãn vị trí
+      5. Lưu Session + DrawLog (flush; commit do caller / get_db)
+    """
+    if request_body.user_id is not None and await db.get(User, request_body.user_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {request_body.user_id} not found.",
         )
 
     spread_type = request_body.spread_type
-
-    # --- Bước 2: Xác định số lá bài ---
     num_cards = quantum_engine.get_spread_size(spread_type)
     logger.info(
         "Draw request: spread=%s, cards=%d, user=%s",
         spread_type, num_cards, request_body.user_id,
     )
 
-    # --- Bước 3: Quantum draw ---
     try:
         draw_result = await quantum_engine.draw_cards(
             num_cards=num_cards,
@@ -109,41 +114,31 @@ async def draw_tarot(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
-        )
+        ) from exc
 
-    # --- Bước 4: Interpret spread ---
     interpretation = await interpretation_service.interpret_spread(
         draw_result=draw_result,
         db=db,
     )
 
-    # --- Bước 4b: Stamp position labels onto each card ---
-    position_labels = _get_position_labels(spread_type)
+    labels = POSITION_LABELS[spread_type]
     for card in interpretation.cards:
-        card.position_label = position_labels.get(card.position_index)
+        card.position_label = labels[card.position_index]
+        card.position_label_vi = position_vi(card.position_label, card.position_index)
 
-    # --- Bước 5: Tạo Session record ---
     session_id = uuid.uuid4()
-
-    # Session cần user_id — None nếu anonymous (user_id column đã nullable)
-    effective_user_id = request_body.user_id  # None = anonymous session
-
-    db_session = Session(
+    db.add(Session(
         id=session_id,
-        user_id=effective_user_id,
+        user_id=request_body.user_id,  # None = anonymous session
         spread_type=spread_type,
         intention=request_body.intention,
         status="completed",
         quantum_seed=draw_result.raw_bytes_hex,
-        interpretation_result=interpretation.model_dump(),
+        interpretation_result=interpretation.model_dump(mode="json"),
         completed_at=datetime.now(timezone.utc),
-    )
-    db.add(db_session)
-
-    # --- Bước 6: Tạo DrawLog records ---
+    ))
     for card in interpretation.cards:
-        timing_dict = card.timing.model_dump()
-        draw_log = DrawLog(
+        db.add(DrawLog(
             id=uuid.uuid4(),
             session_id=session_id,
             card_id=card.card_id,
@@ -151,19 +146,17 @@ async def draw_tarot(
             position_label=card.position_label,
             orientation=card.orientation,
             dignity_weight=card.dignity_weight,
-            timing_output=timing_dict,
-            raw_quantum_bytes=hex(card.raw_quantum_byte),
-        )
-        db.add(draw_log)
+            timing_output=card.timing.model_dump(),
+            raw_quantum_bytes=f"{card.raw_quantum_byte:02x}{card.orientation_byte or 0:02x}",
+        ))
 
-    await db.flush()  # Flush để check constraints; commit sẽ do get_db() xử lý
+    await db.flush()  # check constraints sớm
 
     logger.info(
         "Session %s completed: %s spread, source=%s",
         session_id, spread_type, interpretation.quantum_source,
     )
 
-    # --- Bước 7: Trả về response ---
     return DrawResponse(
         session_id=session_id,
         interpretation=interpretation,
@@ -171,149 +164,74 @@ async def draw_tarot(
     )
 
 
-def _get_position_labels(spread_type: str) -> dict[int, str]:
-    """Trả về nhãn vị trí theo loại spread."""
-    labels: dict[str, dict[int, str]] = {
-        "single": {0: "The Card"},
-        "three_card": {
-            0: "Past",
-            1: "Present",
-            2: "Future",
-        },
-        "horseshoe": {
-            0: "Past",
-            1: "Present",
-            2: "Hidden Influences",
-            3: "Obstacles",
-            4: "External Influences",
-            5: "Hopes & Fears",
-            6: "Outcome",
-        },
-        "celtic_cross": {
-            0: "Present Situation",
-            1: "Crossing",
-            2: "Root",
-            3: "Past",
-            4: "Crown",
-            5: "Near Future",
-            6: "Self",
-            7: "Environment",
-            8: "Hopes & Fears",
-            9: "Outcome",
-        },
-    }
-    return labels.get(spread_type, {})
+@router.post(
+    "",
+    response_model=DrawResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Perform a Tarot card reading",
+    description=(
+        "Rút bài Tarot sử dụng Quantum entropy từ ANU QRNG. "
+        "Trả về kết quả diễn giải với Elemental Dignities và Decan Timing. "
+        "**Yêu cầu header `X-Adult-Confirmed: true`** (Compliance Gate)."
+    ),
+    dependencies=[Depends(require_adult_confirmation)],
+)
+async def draw_tarot(
+    request_body: DrawRequest,
+    db: AsyncSession = Depends(get_db),
+) -> DrawResponse:
+    return await _perform_draw(request_body, db)
 
 
-@router.post("/ai-stream")
+@router.post(
+    "/ai-stream",
+    summary="Draw cards and stream an AI reading (SSE)",
+    description=(
+        "Rút bài như `/draw`, rồi stream lời đọc bài tiếng Việt qua Server-Sent Events. "
+        "**Yêu cầu header `X-Adult-Confirmed: true`**."
+    ),
+    dependencies=[Depends(require_adult_confirmation)],
+    response_class=StreamingResponse,
+)
 async def draw_and_stream(
     request_body: DrawRequest,
-    x_adult_confirmed: str = Header(None, alias="X-Adult-Confirmed"),
     db: AsyncSession = Depends(get_db),
-):
+) -> StreamingResponse:
     """
-    Draw cards AND stream Claude AI interpretation via SSE.
-
     SSE event format:
-      data: {"type": "draw_result", "session_id": "...", "interpretation": {...}}\n\n
-      data: {"type": "token", "text": "..."}\n\n
-      data: {"type": "done"}\n\n
-      data: {"type": "error", "message": "..."}\n\n
+      data: {"type": "draw_result", "session_id": "...", "interpretation": {...}, "disclaimer": "..."}
+      data: {"type": "token", "text": "..."}            (lặp lại)
+      data: {"type": "done"}
+      data: {"type": "error", "message": "..."}         (thay cho done nếu lỗi)
     """
-    from fastapi.responses import StreamingResponse
-    from app.services.ai_reader_service import stream_reading
-    import orjson
+    draw_response = await _perform_draw(request_body, db)
+    # Commit TRƯỚC khi stream: phiên đọc bài được lưu dù client ngắt giữa chừng,
+    # và không phụ thuộc thời điểm FastAPI đóng dependency có yield.
+    await db.commit()
 
-    # Compliance gate
-    if not x_adult_confirmed or x_adult_confirmed.lower() != "true":
-        raise HTTPException(
-            status_code=403,
-            detail="Adult confirmation required. Set X-Adult-Confirmed: true header.",
-        )
-
-    # --- Run the same draw flow as /draw ---
-    spread_type = request_body.spread_type
-    num_cards = quantum_engine.get_spread_size(spread_type)
-
-    draw_result = await quantum_engine.draw_cards(
-        num_cards=num_cards,
-        spread_type=spread_type,
-        db=db,
-    )
-    interpretation = await interpretation_service.interpret_spread(
-        draw_result=draw_result,
-        db=db,
-    )
-
-    # Stamp position labels onto each card (required by ai_reader_service)
-    position_labels = _get_position_labels(spread_type)
-    for card_interp in interpretation.cards:
-        card_interp.position_label = position_labels.get(card_interp.position_index)
-
-    # Create session in DB (same pattern as /draw endpoint)
-    session_id = uuid.uuid4()
-
-    db_session = Session(
-        id=session_id,
-        user_id=request_body.user_id,
-        spread_type=spread_type,
-        intention=request_body.intention,
-        status="completed",
-        quantum_seed=draw_result.raw_bytes_hex,
-        interpretation_result=interpretation.model_dump(),
-        completed_at=datetime.now(timezone.utc),
-    )
-    db.add(db_session)
-
-    for card_interp in interpretation.cards:
-        draw_log = DrawLog(
-            id=uuid.uuid4(),
-            session_id=session_id,
-            card_id=card_interp.card_id,
-            position_index=card_interp.position_index,
-            position_label=card_interp.position_label,
-            orientation=card_interp.orientation,
-            dignity_weight=card_interp.dignity_weight,
-            timing_output=card_interp.timing.model_dump() if card_interp.timing else None,
-            raw_quantum_bytes=hex(card_interp.raw_quantum_byte),
-        )
-        db.add(draw_log)
-
-    await db.flush()
-
-    draw_response = DrawResponse(
-        session_id=str(session_id),
-        interpretation=interpretation,
-        disclaimer=LEGAL_DISCLAIMER,
-    )
+    interpretation = draw_response.interpretation
+    intention = request_body.intention
 
     async def event_stream():
-        # 1. Send draw result first
-        draw_data = {
+        yield _sse({
             "type": "draw_result",
-            "session_id": draw_response.session_id,
-            "interpretation": draw_response.interpretation.model_dump(mode="json"),
+            "session_id": str(draw_response.session_id),
+            "interpretation": interpretation.model_dump(mode="json"),
             "disclaimer": draw_response.disclaimer,
-        }
-        yield b"data: " + orjson.dumps(draw_data) + b"\n\n"
+        })
 
-        # 2. Stream Claude tokens
         try:
-            async for token in stream_reading(interpretation, request_body.intention):
-                token_data = {"type": "token", "text": token}
-                yield b"data: " + orjson.dumps(token_data) + b"\n\n"
-        except ValueError as e:
-            error_data = {"type": "error", "message": str(e)}
-            yield b"data: " + orjson.dumps(error_data) + b"\n\n"
-            return
-        except Exception as e:
-            logger.error("Streaming error: %s", str(e))
-            error_data = {"type": "error", "message": "Lỗi kết nối AI. Vui lòng thử lại."}
-            yield b"data: " + orjson.dumps(error_data) + b"\n\n"
+            async for token in stream_reading(interpretation, intention):
+                yield _sse({"type": "token", "text": token})
+        except Exception as exc:
+            logger.error("Streaming error (%s): %s", type(exc).__name__, exc)
+            yield _sse({
+                "type": "error",
+                "message": "Lời đọc bài bị gián đoạn. Vui lòng thử lại.",
+            })
             return
 
-        # 3. Done
-        yield b"data: " + orjson.dumps({"type": "done"}) + b"\n\n"
+        yield _sse({"type": "done"})
 
     return StreamingResponse(
         event_stream(),

@@ -1,5 +1,7 @@
 "use client"
 
+import { STRINGS, TOPICS } from "@/app/lib/strings"
+
 interface IntentionInputProps {
   value: string
   onChange: (value: string) => void
@@ -8,38 +10,53 @@ interface IntentionInputProps {
 const MAX_CHARS = 280
 
 export default function IntentionInput({ value, onChange }: IntentionInputProps) {
-  const remaining = MAX_CHARS - value.length
+  const nearLimit = value.length > MAX_CHARS - 40
 
   return (
-    <div className="relative w-full">
-      <label
-        htmlFor="intention-input"
-        className="block text-silver/70 text-sm font-sans mb-2"
-      >
-        Ý định của bạn (tùy chọn)
-      </label>
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <label htmlFor="intention-input" className="text-base font-semibold text-light">
+          {STRINGS.INTENTION_LABEL}
+        </label>
+        <span id="intention-hint" className="text-sm text-silver">
+          {STRINGS.INTENTION_OPTIONAL} ·{" "}
+          <span aria-live={nearLimit ? "polite" : "off"} className={`tabular-nums ${nearLimit ? "text-gold" : ""}`}>
+            {value.length}/{MAX_CHARS}
+          </span>
+        </span>
+      </div>
       <textarea
         id="intention-input"
         value={value}
-        onChange={(e) => {
-          if (e.target.value.length <= MAX_CHARS) {
-            onChange(e.target.value)
-          }
-        }}
-        placeholder="Bạn muốn hỏi điều gì với những lá bài?"
+        maxLength={MAX_CHARS}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={STRINGS.INTENTION_PLACEHOLDER}
         rows={3}
-        className="w-full bg-transparent border-b border-mist focus:border-arcane outline-none resize-none
-          font-serif italic text-lg text-pearl placeholder:text-silver/60
-          transition-colors duration-200 pb-2 pt-1
-          leading-relaxed"
+        aria-describedby="intention-hint"
+        className="block w-full resize-none rounded-[14px] border border-mist bg-ink sm:bg-void px-4 py-3.5
+          text-[17px] sm:text-lg leading-relaxed text-light placeholder:text-silver
+          transition-colors focus:border-gold focus:ring-1 focus:ring-gold focus-visible:outline-none"
       />
-      <div className="flex justify-end mt-1">
-        <span
-          className={`text-xs font-mono transition-colors duration-200
-            ${remaining < 40 ? "text-reversed/70" : "text-silver/70"}`}
-        >
-          {remaining}
-        </span>
+
+      <div className="flex flex-wrap gap-2" role="group" aria-label={STRINGS.TOPICS_LABEL}>
+        {TOPICS.map((topic) => {
+          const active = value === topic.question
+          return (
+            <button
+              key={topic.label}
+              type="button"
+              onClick={() => onChange(active ? "" : topic.question)}
+              aria-pressed={active}
+              className={`h-10 rounded-full border px-4 text-[15px] transition-colors
+                ${active
+                  ? "border-gold bg-gold/10 text-light pixel:pixel-shadow-sm"
+                  : "border-mist text-pearl hover:border-pearl/50 hover:text-light"
+                }`}
+            >
+              {topic.label}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

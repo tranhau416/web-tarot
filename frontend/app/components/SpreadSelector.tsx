@@ -1,107 +1,52 @@
-import type { SpreadType } from "../lib/types"
-
-interface SpreadOption {
-  type: SpreadType
-  name: string
-  cardCount: number
-  description: string
-  symbol: string
-}
-
-const SPREAD_OPTIONS: SpreadOption[] = [
-  {
-    type: "single",
-    name: "Single",
-    cardCount: 1,
-    description: "A direct answer for the present moment",
-    symbol: "✦",
-  },
-  {
-    type: "three_card",
-    name: "Three Card",
-    cardCount: 3,
-    description: "Past · Present · Future",
-    symbol: "✦✦✦",
-  },
-  {
-    type: "horseshoe",
-    name: "Horseshoe",
-    cardCount: 7,
-    description: "A week's arc of energy",
-    symbol: "⌒",
-  },
-  {
-    type: "celtic_cross",
-    name: "Celtic Cross",
-    cardCount: 10,
-    description: "Deep dive into a complex situation",
-    symbol: "✛",
-  },
-]
+import SpreadDiagram from "@/app/components/SpreadDiagram"
+import { SPREADS } from "@/app/lib/constants"
+import { STRINGS } from "@/app/lib/strings"
+import type { SpreadType } from "@/app/lib/types"
 
 interface SpreadSelectorProps {
   selected: SpreadType
   onChange: (type: SpreadType) => void
 }
 
+/** Nhóm radio gốc (phím mũi tên hoạt động sẵn), mỗi lựa chọn có sơ đồ bố cục lá. */
 export default function SpreadSelector({ selected, onChange }: SpreadSelectorProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {SPREAD_OPTIONS.map((option) => {
-        const isSelected = selected === option.type
-        return (
-          <button
-            key={option.type}
-            type="button"
-            onClick={() => onChange(option.type)}
-            aria-label={`${option.name} — ${option.description}`}
-            aria-pressed={isSelected}
-            className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200
-              text-center cursor-pointer
-              ${isSelected
-                ? "border-arcane bg-arcane/10 text-glow shadow-lg shadow-arcane/10"
-                : "border-mist bg-ink/50 text-silver hover:border-arcane-dim hover:text-pearl hover:bg-veil"
-              }`}
-          >
-            {/* Symbol */}
-            <span
-              className={`text-xl font-mono select-none transition-colors duration-200
-                ${isSelected ? "text-arcane" : "text-silver/70"}`}
-            >
-              {option.symbol}
-            </span>
-
-            {/* Name */}
-            <span
-              className={`font-sans font-semibold text-base transition-colors duration-200
-                ${isSelected ? "text-glow" : "text-pearl"}`}
-            >
-              {option.name}
-            </span>
-
-            {/* Card count badge */}
-            <span
-              className={`text-sm font-mono px-2 py-0.5 rounded-full border transition-all duration-200
-                ${isSelected
-                  ? "border-arcane text-arcane bg-arcane/10"
-                  : "border-mist text-silver"
-                }`}
-            >
-              {option.cardCount} {option.cardCount === 1 ? "card" : "cards"}
-            </span>
-
-            {/* Description */}
-            <span className="text-sm text-silver/80 leading-snug font-sans">
-              {option.description}
-            </span>
-
-            {/* Selected indicator */}
-            {isSelected && (
-              <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-arcane" />
-            )}
-          </button>
-        )
-      })}
-    </div>
+    <fieldset className="min-w-0">
+      <legend className="mb-3 text-base font-semibold text-light">{STRINGS.SPREAD_LABEL}</legend>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        {SPREADS.map((spread) => {
+          const isSelected = selected === spread.type
+          return (
+            <label key={spread.type} className="cursor-pointer">
+              <input
+                type="radio"
+                name="spread"
+                value={spread.type}
+                checked={isSelected}
+                onChange={() => onChange(spread.type)}
+                className="peer sr-only"
+              />
+              <span
+                className={`flex h-full flex-col items-start gap-3 rounded-2xl border-[1.5px] p-3.5 sm:p-4 text-left transition-colors
+                  peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-gold
+                  ${isSelected
+                    ? "border-gold bg-gold/[0.08] pixel:pixel-shadow-sm"
+                    : "border-mist bg-ink sm:bg-void hover:border-pearl/40"
+                  }`}
+              >
+                <SpreadDiagram
+                  type={spread.type}
+                  className={`h-11 ${isSelected ? "text-gold" : "text-silver/60"}`}
+                />
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-base font-semibold text-light">{spread.name}</span>
+                  <span className="text-sm leading-snug text-pearl">{spread.description}</span>
+                </span>
+              </span>
+            </label>
+          )
+        })}
+      </div>
+    </fieldset>
   )
 }

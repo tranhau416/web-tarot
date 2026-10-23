@@ -5,7 +5,8 @@ backend/app/core/middleware.py
 ============================================================
 
 AdultConfirmationMiddleware:
-  - Chặn POST /api/v1/draw nếu thiếu header X-Adult-Confirmed: true
+  - Chặn POST /api/v1/draw và mọi sub-path (/api/v1/draw/ai-stream, ...)
+    nếu thiếu header X-Adult-Confirmed: true
   - Trả về 403 Forbidden với body JSON chuẩn
   - Các endpoint khác không bị ảnh hưởng
 
@@ -17,7 +18,6 @@ Tại sao middleware thay vì chỉ check trong endpoint?
 
 from __future__ import annotations
 
-import json
 import logging
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -27,10 +27,18 @@ from starlette.types import ASGIApp
 
 logger = logging.getLogger(__name__)
 
-# Endpoints yêu cầu xác nhận tuổi
-ADULT_CONFIRMED_REQUIRED_PATHS = {
+# Endpoints yêu cầu xác nhận tuổi: (method, path prefix)
+ADULT_CONFIRMED_REQUIRED_PREFIXES = (
     ("POST", "/api/v1/draw"),
-}
+)
+
+
+def requires_adult_confirmation(method: str, path: str) -> bool:
+    path = path.rstrip("/")
+    return any(
+        method == m and (path == prefix or path.startswith(prefix + "/"))
+        for m, prefix in ADULT_CONFIRMED_REQUIRED_PREFIXES
+    )
 
 
 class AdultConfirmationMiddleware(BaseHTTPMiddleware):
@@ -53,7 +61,7 @@ class AdultConfirmationMiddleware(BaseHTTPMiddleware):
         method = request.method.upper()
         path = request.url.path
 
-        if (method, path) in ADULT_CONFIRMED_REQUIRED_PATHS:
+        if requires_adult_confirmation(method, path):
             adult_header = request.headers.get("X-Adult-Confirmed", "").strip().lower()
 
             if adult_header != "true":

@@ -10,8 +10,8 @@ A full-stack quantum-powered Tarot reading web application. The backend uses Fas
 
 ### Docker (full stack)
 ```bash
-docker compose up --build -d
-docker compose exec backend python seed.py   # Seed 78 tarot cards
+cp .env.docker .env                          # Compose reads the root .env
+docker compose up --build -d                 # backend auto-creates tables + syncs the 78-card deck
 docker compose logs -f
 docker compose down
 ```
@@ -21,9 +21,11 @@ docker compose down
 cd backend
 source venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8001        # Dev server
-python seed.py                               # Seed cards from mock_tarot_seed_data.json
+uvicorn main:app --reload --port 8001        # Dev server (auto-inits DB on startup)
+python seed.py                               # Upsert the built-in 78-card deck
 python fetch_tavily_data.py                  # Fetch card metadata from Tavily
+python seed.py --file tarot_seed_data.json   # Merge Tavily metadata into the deck
+pip install -r requirements-dev.txt && pytest  # Tests (API tests need Postgres; REQUIRE_DB=1 to fail instead of skip)
 ```
 
 ### Frontend (local dev)
@@ -46,23 +48,29 @@ npm run lint
 ### Backend (`backend/`)
 Entry point is `main.py` (FastAPI app). All business logic lives under `app/`:
 
-- **`app/core/`** — Config (Pydantic Settings), async DB session factory, `AdultConfirmationMiddleware` (18+ compliance gate on all requests)
-- **`app/api/v1/endpoints/`** — Two active endpoint files: `draw.py` (POST `/draw` for JSON response, POST `/draw/ai-stream` for SSE streaming) and `cards.py` (GET `/cards`, GET `/cards/{id}`)
-- **`app/services/`** — Three service modules:
-  - `quantum_engine.py` — Entropy from ANU QRNG → Random.org → local fallback; card selection logic
-  - `interpretation_service.py` — Elemental dignities and decan timing calculations
-  - `ai_reader_service.py` — LLM orchestration with provider chain: Google Gemini → Anthropic Claude → mock
+- **`app/core/`** — Config (Pydantic Settings), async DB session factory, `init_db.py` (create schema + upsert the deck on every startup under a Postgres advisory lock; `metadata_json` is merged with `||`), `AdultConfirmationMiddleware` (18+ gate on `POST /api/v1/draw*`)
+- **`app/data/tarot_deck.py`** — Canonical 78-card RWS deck (source of truth for the `cards` table): `name_vi`, keywords, Golden Dawn elements/decans/zodiac modes, numerology, `image_url`. `id = card_number + 1`.
+- **`app/data/vi.py`** — Vietnamese vocabulary (positions, elements, keywords, astrology, timing, dignity) used by the deck metadata, the `*_vi` API fields and the prompts
+- **`app/api/v1/endpoints/`** — `draw.py` (POST `/draw` JSON, POST `/draw/ai-stream` SSE; both use `_perform_draw`) and `cards.py` (GET `/cards`, GET `/cards/{id}`)
+- **`app/services/`**:
+  - `quantum_engine.py` — One entropy fetch per draw (ANU QRNG → Random.org → OS entropy, failed sources skipped for 60s); unbiased partial Fisher–Yates selection
+  - `interpretation_service.py` — Elemental dignities (same element = +1) and decan timing (Ace/Page → season)
+  - `ai_reader_service.py` — Provider chain from `providers/` registry: Gemini → Claude → mock. Falls through only on failures before the first token; a mid-stream failure becomes an SSE `error` event
+  - `providers/`, `prompts/` — LLM providers (Claude uses `claude-opus-5-5` with server-side refusal fallback, no `temperature`) and shared Vietnamese prompts
 - **`app/models.py`** — 4 SQLAlchemy ORM models: `User`, `Card`, `Session`, `DrawLog`
 - **`app/schemas/tarot.py`** — Pydantic v2 request/response models
 
 ### Frontend (`frontend/app/`)
-Single-page client component at `page.tsx` orchestrates the full UI flow. Components under `app/components/`:
-- `LegalGate.tsx` — Age 18+ verification modal (required before any reading)
-- `CardReveal.tsx` — 3D card flip animation grid
-- `AIReading.tsx` — SSE streaming text renderer
-- Others: `SpreadSelector`, `IntentionInput`, `DrawButton`, `InterpretationPanel`
+Single-page client component at `page.tsx` renders the flow (idle form → result: compact header, board + legend on the left, reading on the right at `lg`); reading state lives in the `useTarotReading` hook (`app/lib/useTarotReading.ts`: idle → drawing → reading → done/error, `stop()` keeps cards and partial text, AbortController). `app/history/page.tsx` lists finished readings saved in localStorage (`app/lib/history.ts`). All UI copy is Vietnamese and lives in `app/lib/strings.ts`; spread names/positions in `app/lib/constants.ts`. Components under `app/components/`:
+- `LegalGate.tsx` — Age 18+ verification modal (required before any reading); the app behind it is `inert`
+- `SpreadBoard.tsx` — Cards laid out in the spread's real geometry (`app/lib/spreadLayouts.ts`: Celtic Cross with crossing card + staff, U-shaped horseshoe), face-down shimmer while drawing, then 3D flip (reversed rotated 180°, CSS face fallback); also exports `SpreadCaptions` (names under one-row spreads) and `SpreadLegend` (7/10-card spreads)
+- `InterpretationPanel.tsx` — Card detail: `variant="inline"` under the board on desktop (`useMediaQuery(DESKTOP_QUERY)`), `variant="sheet"` inside `CardSheet.tsx` (native `<dialog>` bottom sheet with prev/next) on phones; technical numbers collapsed under "Chi tiết kỹ thuật"
+- `AIReading.tsx` — Reading section (status, stop, actions); `ReadingText.tsx` renders the light markdown (shared with history)
+- Others: `SpreadSelector` (native radios + `SpreadDiagram` mini layouts), `IntentionInput` (topic chips), `DrawButton`, `BrandMark`, `HeroFan`, `NavLink`
 
-API communication is in `app/lib/api.ts` — wraps fetch calls and exposes an async generator for SSE streaming. TypeScript types are in `app/lib/types.ts`.
+Card images live in `frontend/public/cards/` (public-domain 1909 RWS "Pam-A" scans, see `CREDITS.txt`), generated by `scripts/build_card_images.py`. Fonts come from `next/font/google` in `layout.tsx`: Be Vietnam Pro (UI and reading text, built for Vietnamese diacritics) and Fraunces (`font-display`, large headings only). Colours are tokens in `globals.css`: `text-silver` (6.2:1) is the smallest allowed text colour, `text-read` is for long reading text, gold is the single accent (primary buttons use `bg-gold text-on-gold`; gold = upright, moon blue = reversed). Avoid all-caps Vietnamese labels and text under 14px. Two themes, chosen in the 18+ gate (`ThemePicker`) or the header (`ThemeToggle`) and stored in localStorage (`app/lib/theme.ts`; `lib/themeScript.ts` applies it before paint): `night` (default) and `pixel` ("Pixel hồng": pastel pink, plum outlines, VT323 for headings/buttons/labels, Nunito for long text). The pixel theme overrides the colour tokens under `[data-theme="pixel"]` in `globals.css`; per-component touches use the `pixel:` variant and the `pixel-shadow*` utilities, and buttons/links that should take the pixel face carry the `ui-font` class.
+
+API communication is in `app/lib/api.ts` — wraps fetch calls (friendly `ApiError` messages) and exposes an async generator for SSE streaming. Base URL: `NEXT_PUBLIC_API_URL` (inlined at build; empty = same origin via nginx), defaulting to `http://localhost:8001` in `npm run dev`. TypeScript types are in `app/lib/types.ts`.
 
 ### Database Schema
 Four tables: `users`, `cards` (78 RWS deck entries, JSONB metadata), `sessions` (per-reading with quantum seed, JSONB results), `draw_logs` (per-card draws with orientation, dignity weight, timing).
@@ -70,14 +78,15 @@ Four tables: `users`, `cards` (78 RWS deck entries, JSONB metadata), `sessions` 
 ### Key Environment Variables
 See `backend/.env.example`:
 - `DATABASE_URL` — PostgreSQL async connection string
-- `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY` — LLM providers
+- `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY` — LLM providers; `CLAUDE_MODEL`, `CLAUDE_READING_EFFORT` (not `CLAUDE_EFFORT`, which Claude Code itself sets)
 - `TAVILY_API_KEY` — card metadata fetching
-- `ANU_QRNG_URL` — quantum entropy source
+- `ANU_QRNG_URL`, `ANU_API_KEY` — quantum entropy source
+- `AUTO_INIT_DB`, `CORS_ORIGINS`
 
 For Docker, use `.env.docker` as a template.
 
 ### Nginx
-`nginx/nginx.conf` provides rate limiting (10 req/min on `/api/v1/draw`, 30 req/min on `/api/*`), 1-year static asset caching, and extended timeouts for SSE endpoints.
+`nginx/nginx.conf` provides rate limiting (10 req/min on `/api/v1/draw*` → 429, 30 req/min on `/api/*`), 1-year static asset caching, and unbuffered, extended-timeout proxying for the SSE endpoint.
 
 ### API Documentation
 Swagger UI available at `http://localhost:8001/docs` when running the backend.
