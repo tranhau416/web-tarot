@@ -1,168 +1,137 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useSyncExternalStore } from "react"
+import BrandMark from "@/app/components/BrandMark"
+import ThemePicker from "@/app/components/ThemePicker"
 import { STORAGE_KEYS } from "@/app/lib/constants"
+import { STRINGS } from "@/app/lib/strings"
 
-const DISCLAIMER = `This application provides tarot readings for entertainment and introspective purposes only. All interpretations are generated using quantum random number generation and symbolic archetypal frameworks. Nothing presented here constitutes legal, medical, financial, psychological, or professional advice of any kind.
+const CONSENT_EVENT = "tarot-consent-change"
 
-Tarot readings do not predict the future with certainty. The cards reflect symbolic possibilities and should be used as a tool for self-reflection, not as a definitive guide for life decisions. By entering this space, you acknowledge that you are 18 years of age or older and that you understand the entertainment nature of this service.`
-
-interface LegalGateProps {
-  children: React.ReactNode
+function subscribe(onChange: () => void) {
+  window.addEventListener("storage", onChange)
+  window.addEventListener(CONSENT_EVENT, onChange)
+  return () => {
+    window.removeEventListener("storage", onChange)
+    window.removeEventListener(CONSENT_EVENT, onChange)
+  }
 }
 
-export default function LegalGate({ children }: LegalGateProps) {
-  const [isConfirmed, setIsConfirmed] = useState<boolean | null>(null)
-  const [check1, setCheck1] = useState(false)
-  const [check2, setCheck2] = useState(false)
+function readConsent(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.ADULT_CONFIRMED) === "true"
+  } catch {
+    return false
+  }
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEYS.ADULT_CONFIRMED)
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional localStorage hydration pattern
-    setIsConfirmed(stored === "true")
-  }, [])
+function Checkbox({ id, checked, onChange, children }: {
+  id: string
+  checked: boolean
+  onChange: (v: boolean) => void
+  children: React.ReactNode
+}) {
+  return (
+    <label htmlFor={id} className="flex items-start gap-3 cursor-pointer group py-1.5">
+      <input
+        id={id}
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span
+        aria-hidden="true"
+        className={`mt-0.5 w-5 h-5 flex-shrink-0 rounded-md border-2 flex items-center justify-center transition-colors
+          peer-focus-visible:ring-2 peer-focus-visible:ring-gold peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-ink
+          ${checked ? "bg-gold border-gold" : "border-silver group-hover:border-gold"}`}
+      >
+        {checked && (
+          <svg className="w-3 h-3 text-on-gold" viewBox="0 0 12 12">
+            <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span className="text-light text-[15px] leading-snug">{children}</span>
+    </label>
+  )
+}
+
+/**
+ * Cổng 18+: app vẫn hiển thị (mờ, không tương tác được) phía sau hộp xác nhận.
+ * Nếu trình duyệt chặn localStorage, xác nhận vẫn có hiệu lực trong phiên hiện tại.
+ */
+export default function LegalGate({ children }: { children: React.ReactNode }) {
+  const stored = useSyncExternalStore(subscribe, readConsent, () => true)
+  const [confirmedNow, setConfirmedNow] = useState(false)
+  const [age, setAge] = useState(false)
+  const [fun, setFun] = useState(false)
+  const confirmed = stored || confirmedNow
 
   const handleConfirm = () => {
-    localStorage.setItem(STORAGE_KEYS.ADULT_CONFIRMED, "true")
-    setIsConfirmed(true)
+    try {
+      localStorage.setItem(STORAGE_KEYS.ADULT_CONFIRMED, "true")
+      window.dispatchEvent(new Event(CONSENT_EVENT))
+    } catch {
+      // bộ nhớ bị chặn — chỉ ghi nhớ trong phiên này
+    }
+    setConfirmedNow(true)
   }
 
-  // Still loading from localStorage
-  if (isConfirmed === null) {
-    return (
-      <div className="min-h-screen bg-void flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-arcane border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  // Already confirmed — render app
-  if (isConfirmed) {
-    return <>{children}</>
-  }
-
-  // Show modal gate
   return (
     <>
-      {/* Blurred background content hint */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/95 backdrop-blur-sm px-4">
-        <div
-          className="bg-ink border border-mist rounded-2xl p-8 max-w-md w-full shadow-2xl animate-fade-in"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="legal-gate-title"
-          aria-describedby="legal-gate-disclaimer"
-        >
-          {/* Sacred Symbol */}
-          <div className="flex justify-center mb-6">
-            <div className="text-5xl animate-float select-none">🔮</div>
-          </div>
-
-          {/* Title */}
-          <h1
-            id="legal-gate-title"
-            className="font-serif text-3xl text-light text-center mb-2"
-          >
-            Sacred Space
-          </h1>
-          <p className="text-silver text-sm text-center mb-6 font-sans">
-            An archetypal space for reflection & self-discovery
-          </p>
-
-          {/* Disclaimer Scroll */}
-          <div
-            id="legal-gate-disclaimer"
-            className="bg-veil border border-mist rounded-xl p-4 mb-6 max-h-40 overflow-y-auto"
-          >
-            <p className="text-silver text-xs leading-relaxed font-sans whitespace-pre-line">
-              {DISCLAIMER}
-            </p>
-          </div>
-
-          {/* Checkboxes */}
-          <div className="space-y-4 mb-6">
-            <label
-              htmlFor="check-age"
-              className="flex items-start gap-3 cursor-pointer group"
-            >
-              <div className="relative mt-0.5 flex-shrink-0">
-                <input
-                  id="check-age"
-                  type="checkbox"
-                  checked={check1}
-                  onChange={(e) => setCheck1(e.target.checked)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center
-                    ${check1
-                      ? "bg-arcane border-arcane"
-                      : "bg-transparent border-mist group-hover:border-arcane-dim"
-                    }`}
-                >
-                  {check1 && (
-                    <svg className="w-3 h-3 text-light" fill="currentColor" viewBox="0 0 12 12">
-                      <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <span className="text-pearl text-sm font-sans leading-snug">
-                I confirm I am <strong className="text-light">18 years of age or older</strong>
-              </span>
-            </label>
-
-            <label
-              htmlFor="check-entertainment"
-              className="flex items-start gap-3 cursor-pointer group"
-            >
-              <div className="relative mt-0.5 flex-shrink-0">
-                <input
-                  id="check-entertainment"
-                  type="checkbox"
-                  checked={check2}
-                  onChange={(e) => setCheck2(e.target.checked)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center
-                    ${check2
-                      ? "bg-arcane border-arcane"
-                      : "bg-transparent border-mist group-hover:border-arcane-dim"
-                    }`}
-                >
-                  {check2 && (
-                    <svg className="w-3 h-3 text-light" fill="currentColor" viewBox="0 0 12 12">
-                      <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <span className="text-pearl text-sm font-sans leading-snug">
-                I understand this is for{" "}
-                <strong className="text-light">entertainment purposes only</strong>
-              </span>
-            </label>
-          </div>
-
-          {/* CTA Button */}
-          <button
-            onClick={handleConfirm}
-            disabled={!check1 || !check2}
-            className={`w-full py-3 px-6 rounded-xl font-sans font-medium text-base transition-all duration-200
-              ${check1 && check2
-                ? "bg-arcane hover:bg-glow text-light shadow-lg shadow-arcane/25 cursor-pointer"
-                : "bg-mist text-silver cursor-not-allowed opacity-60"
-              }`}
-          >
-            Enter the Sacred Space
-          </button>
-
-          <p className="text-silver/70 text-xs text-center mt-4 font-sans">
-            Your consent is remembered in this browser.
-          </p>
-        </div>
+      <div inert={!confirmed} className={confirmed ? undefined : "blur-sm select-none"}>
+        {children}
       </div>
+
+      {!confirmed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-void/80 backdrop-blur-sm px-4 py-6">
+          <div
+            className="bg-ink border border-mist rounded-[20px] p-6 sm:p-8 max-w-md w-full shadow-2xl pixel:pixel-shadow-lg animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="legal-gate-title"
+            aria-describedby="legal-gate-body"
+          >
+            <div className="flex justify-center mb-5">
+              <BrandMark className="w-14 h-14" />
+            </div>
+            <h1 id="legal-gate-title" className="font-display text-3xl font-medium text-light text-center mb-1.5">
+              {STRINGS.GATE_TITLE}
+            </h1>
+            <p className="text-pearl text-[15px] text-center mb-5">{STRINGS.GATE_SUBTITLE}</p>
+
+            <p id="legal-gate-body" className="text-read text-[15px] leading-relaxed bg-void border border-mist rounded-xl p-4 mb-5">
+              {STRINGS.GATE_BODY}
+            </p>
+
+            <div className="mb-5">
+              <ThemePicker />
+            </div>
+
+            <div className="space-y-2 mb-6">
+              <Checkbox id="check-age" checked={age} onChange={setAge}>
+                {STRINGS.GATE_CHECK_AGE}
+              </Checkbox>
+              <Checkbox id="check-entertainment" checked={fun} onChange={setFun}>
+                {STRINGS.GATE_CHECK_FUN}
+              </Checkbox>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={!age || !fun}
+              className="w-full h-13 px-6 rounded-[14px] text-base font-semibold transition-colors
+                bg-gold hover:bg-gold-soft text-on-gold pixel:border-2 pixel:border-mist pixel:pixel-shadow pixel:disabled:shadow-none
+                disabled:bg-veil disabled:text-silver disabled:cursor-not-allowed"
+            >
+              {STRINGS.GATE_ENTER}
+            </button>
+            <p className="text-silver text-sm text-center mt-4">{STRINGS.GATE_REMEMBERED}</p>
+          </div>
+        </div>
+      )}
     </>
   )
 }

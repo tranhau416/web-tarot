@@ -5,9 +5,10 @@ backend/main.py
 ============================================================
 
 Khởi động FastAPI app với:
-  - CORS middleware (permissive cho dev)
+  - Lifespan: tự tạo schema + seed 78 lá nếu DB còn thiếu (AUTO_INIT_DB)
+  - CORS middleware (origin lấy từ CORS_ORIGINS)
   - Adult Confirmation Compliance Gate middleware
-  - API v1 router (cards, draw, booking)
+  - API v1 router (cards, draw)
   - Health check endpoint
   - OpenAPI docs (Swagger UI + ReDoc)
 """
@@ -15,12 +16,16 @@ Khởi động FastAPI app với:
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_v1_router
+from app.core.config import settings
+from app.core.database import engine
+from app.core.init_db import init_db
 from app.core.middleware import AdultConfirmationMiddleware
 
 # ---------------------------------------------------------------------------
@@ -33,6 +38,22 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Lifespan (startup / shutdown)
+# ---------------------------------------------------------------------------
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    logger.info("🔮 Tarot Web API v1.0.0 starting up...")
+    if settings.AUTO_INIT_DB:
+        await init_db(engine)
+    logger.info("📖 API docs available at: /docs (Swagger) | /redoc (ReDoc)")
+    yield
+    await engine.dispose()
+    logger.info("🔮 Tarot Web API shutting down gracefully.")
+
 
 # ---------------------------------------------------------------------------
 # FastAPI App
@@ -48,7 +69,7 @@ app = FastAPI(
         "- 🎴 Rút bài với Quantum entropy (ANU QRNG + Random.org fallback)\n"
         "- ⚗️ Elemental Dignities Matrix (Golden Dawn system)\n"
         "- 🌟 Decan Timing Engine (Cardinal/Fixed/Mutable)\n"
-        "- 📅 Booking hệ thống tư vấn trực tiếp\n\n"
+        "- ✨ AI reading streaming (SSE) — Gemini / Claude / mock\n\n"
         "### Compliance:\n"
         "- Yêu cầu xác nhận tuổi 18+ (`X-Adult-Confirmed: true` header)\n"
         "- Tất cả kết quả chỉ mang tính giải trí, không phải tư vấn chuyên nghiệp\n"
@@ -64,29 +85,26 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
-# Middleware (thứ tự QUAN TRỌNG: middleware stack là LIFO)
+# Middleware (thứ tự QUAN TRỌNG: middleware add SAU CÙNG sẽ nằm NGOÀI CÙNG)
 # ---------------------------------------------------------------------------
 
-# 1. CORS — phải ở ngoài cùng (first added = outermost)
+# 1. Adult Confirmation Compliance Gate (bên trong CORS)
+app.add_middleware(AdultConfirmationMiddleware)
+
+# 2. CORS — add sau cùng để ở ngoài cùng: response 403 của compliance gate
+#    vẫn có header CORS, nên browser đọc được thông báo lỗi thay vì "CORS error".
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Compliance-Gate"],
 )
-
-# 2. Adult Confirmation Compliance Gate
-app.add_middleware(AdultConfirmationMiddleware)
 
 # ---------------------------------------------------------------------------
 # Routers
@@ -120,18 +138,3 @@ async def health_check() -> JSONResponse:
             "version": "1.0.0",
         }
     )
-
-
-# ---------------------------------------------------------------------------
-# Startup / Shutdown Events
-# ---------------------------------------------------------------------------
-
-@app.on_event("startup")
-async def on_startup() -> None:
-    logger.info("🔮 Tarot Web API v1.0.0 starting up...")
-    logger.info("📖 API docs available at: /docs (Swagger) | /redoc (ReDoc)")
-
-
-@app.on_event("shutdown")
-async def on_shutdown() -> None:
-    logger.info("🔮 Tarot Web API shutting down gracefully.")

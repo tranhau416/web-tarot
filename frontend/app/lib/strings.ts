@@ -1,53 +1,100 @@
 /**
- * Centralized UI strings — preparation for future i18n.
- * All hardcoded user-facing text lives here.
+ * Chuỗi giao diện tiếng Việt — mọi chữ hiển thị cho người dùng nằm ở đây.
+ * Tên lá bài gốc (tiếng Anh) chỉ xuất hiện như dòng phụ.
  */
 export const STRINGS = {
-  // LegalGate
-  LEGAL_GATE_TITLE: "Sacred Space",
-  LEGAL_GATE_SUBTITLE: "An archetypal space for reflection & self-discovery",
-  LEGAL_GATE_CHECK_AGE: "I confirm I am 18 years of age or older",
-  LEGAL_GATE_CHECK_ENTERTAINMENT: "I understand this is for entertainment purposes only",
-  LEGAL_GATE_ENTER: "Enter the Sacred Space",
-  LEGAL_GATE_CONSENT_REMEMBERED: "Your consent is remembered in this browser.",
+  BRAND: "Sacred Tarot",
 
-  // Hero
-  HERO_TITLE: "Sacred Tarot",
-  HERO_SUBTITLE: "Quantum-powered readings — mỗi lá bài được chọn bởi entropy lượng tử thực sự.",
+  // Legal gate
+  GATE_TITLE: "Trước khi bước vào",
+  GATE_SUBTITLE: "Không gian chiêm nghiệm cùng những lá bài Tarot",
+  GATE_BODY:
+    "Ứng dụng dành cho mục đích giải trí và tự chiêm nghiệm. Lời đọc không phải tư vấn y tế, pháp lý, tài chính hay tâm lý, và không khẳng định tương lai là chắc chắn.",
+  GATE_CHECK_AGE: "Tôi xác nhận mình đủ 18 tuổi",
+  GATE_CHECK_FUN: "Tôi hiểu đây là nội dung giải trí",
+  GATE_ENTER: "Bước vào",
+  THEME_LABEL: "Chọn giao diện",
+  THEME_SWITCH_TO: "Đổi sang giao diện",
+  GATE_REMEMBERED: "Lựa chọn được ghi nhớ trên trình duyệt này.",
 
-  // IntentionInput
-  INTENTION_LABEL: "Ý định của bạn (tùy chọn)",
-  INTENTION_PLACEHOLDER: "Bạn muốn hỏi điều gì với những lá bài?",
+  // Hero & form
+  NAV_READ: "Trải bài",
+  HERO_EYEBROW: "Bộ Rider-Waite-Smith, bản in 1909",
+  HERO_TITLE: "Hỏi điều bạn đang băn khoăn.",
+  HERO_SUBTITLE:
+    "Chọn kiểu trải, rút bài và đọc lời giải bằng tiếng Việt. Mỗi lá được chọn bằng một nguồn ngẫu nhiên lượng tử.",
+  HERO_CAPTION: "Chàng Khờ · Ngôi Sao · Thế Giới — Pamela Colman Smith, 1909",
+  INTENTION_LABEL: "Câu hỏi của bạn",
+  INTENTION_OPTIONAL: "Không bắt buộc",
+  INTENTION_PLACEHOLDER: "Ví dụ: Công việc của tôi trong ba tháng tới sẽ ra sao?",
+  TOPICS_LABEL: "Gợi ý chủ đề",
+  SPREAD_LABEL: "Kiểu trải bài",
+  DRAW: "Rút bài",
 
-  // DrawButton
-  DRAW_BUTTON_IDLE: "Draw from the Void",
-  DRAW_BUTTON_LOADING: "Reading the Quantum Field…",
-  DRAW_BUTTON_ARIA_IDLE: "Rút bài từ vũ trụ",
-  DRAW_BUTTON_ARIA_LOADING: "Đang rút bài từ lượng tử",
+  // Result
+  RESULT_FALLBACK_TITLE: "Trải bài của bạn",
+  DRAWING: "Đang xáo và rút bài…",
+  TAP_HINT: "Chọn một lá để xem chi tiết",
+  CARDS_HEADING: "Các lá bài",
+  LEGEND_HEADING: "Vị trí các lá",
+  DOMINANT_ELEMENT: "Nguyên tố chủ đạo",
+  HARMONY: "Năng lượng",
+  HARMONY_STRONG: "hài hoà",
+  HARMONY_NEUTRAL: "cân bằng",
+  HARMONY_TENSE: "giằng co",
 
-  // AIReading
-  AI_READING_TITLE: "Lời Đọc Bài",
-  AI_READING_STREAMING: "đang đọc…",
-  AI_READING_LOADING: "Đang rút bài và kết nối với vũ trụ…",
-  AI_READING_EMPTY: "Vũ trụ im lặng lần này. Hãy thử lại với một câu hỏi khác.",
-  AI_READING_ERROR_UNKNOWN: "Đã xảy ra lỗi không xác định.",
+  // Card detail
+  UPRIGHT: "Thuận",
+  REVERSED: "Ngược",
+  MEANING_UPRIGHT: "Ý nghĩa khi thuận",
+  MEANING_REVERSED: "Ý nghĩa khi ngược",
+  NEIGHBOURS: "Lá bên cạnh",
+  TIMING: "Thời điểm",
+  ASTROLOGY: "Chiêm tinh",
+  TECHNICAL: "Chi tiết kỹ thuật",
+  CLOSE: "Đóng",
+  PREV_CARD: "Lá trước",
+  NEXT_CARD: "Lá sau",
 
-  // CardReveal
-  CARD_SELECT_ARIA: (cardName: string) => `Chọn lá ${cardName}`,
-  CARD_UPRIGHT: "Upright",
-  CARD_REVERSED: "Reversed",
+  // Reading
+  READING_HEADING: "Lời đọc bài",
+  READING_STREAMING: "đang đọc…",
+  READING_THINKING: "Các lá bài đang thì thầm…",
+  READING_EMPTY: "Vũ trụ im lặng lần này. Hãy thử lại với một câu hỏi khác.",
+  READING_STOPPED: "Đã dừng lời đọc.",
 
-  // page.tsx
-  DOMINANT_ELEMENT_LABEL: "Nguyên tố thống trị",
-  ELEMENTAL_DIGNITY_LABEL: "Elemental Dignity",
-  QUANTUM_SOURCE_LABEL: "Nguồn entropy",
-  DRAW_AGAIN: "✦ Rút bài lại",
-  ERROR_DISMISS: "✕",
-  ERROR_RETRY: "Thử lại",
-  LOADING_CONNECTING: "Đang kết nối với vũ trụ…",
+  // Actions
+  STOP: "Dừng đọc",
+  COPY: "Sao chép lời đọc",
+  COPY_SHORT: "Sao chép",
+  COPIED: "Đã sao chép",
+  NEW_READING: "Rút bài mới",
+  RETRY: "Thử lại",
+  BACK: "Quay lại",
+  HISTORY: "Lịch sử",
+  ENTROPY_SOURCE: "Nguồn ngẫu nhiên",
 
-  // Error boundary
-  ERROR_BOUNDARY_TITLE: "Something went wrong",
-  ERROR_BOUNDARY_DEFAULT: "An unexpected error occurred in the sacred space.",
-  ERROR_BOUNDARY_RESET: "Try again",
+  DISCLAIMER:
+    "Tarot chỉ mang tính giải trí và chiêm nghiệm, không thay thế tư vấn chuyên môn. Nếu bạn đang gặp khủng hoảng, hãy liên hệ người thân hoặc chuyên gia.",
+
+  // Errors
+  ERROR_UNKNOWN: "Đã có lỗi xảy ra. Vui lòng thử lại.",
+
+  // History
+  HISTORY_TITLE: "Lịch sử trải bài",
+  HISTORY_SUBTITLE: "Các lần đọc gần đây được lưu trên trình duyệt này.",
+  HISTORY_EMPTY: "Chưa có lần trải bài nào. Lời đọc sẽ được lưu ở đây sau khi hoàn tất.",
+  HISTORY_CLEAR: "Xoá lịch sử",
+  HISTORY_CONFIRM_CLEAR: "Bấm lần nữa để xoá",
+  HISTORY_NO_QUESTION: "Không có câu hỏi cụ thể",
+  HISTORY_SHOW: "Xem lời đọc",
+  HISTORY_HIDE: "Thu gọn",
 } as const;
+
+export const TOPICS: { label: string; question: string }[] = [
+  { label: "Tình yêu", question: "Chuyện tình cảm của tôi sắp tới sẽ ra sao?" },
+  { label: "Công việc", question: "Công việc của tôi trong thời gian tới sẽ thế nào?" },
+  { label: "Tài chính", question: "Tôi nên lưu ý điều gì về tài chính lúc này?" },
+  { label: "Bản thân", question: "Tôi cần hiểu điều gì về bản thân mình lúc này?" },
+  { label: "Gia đình", question: "Mối quan hệ trong gia đình tôi đang cần điều gì?" },
+];

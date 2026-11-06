@@ -24,6 +24,11 @@ COPY . .
 # Disable Next.js telemetry trong CI/CD
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# NEXT_PUBLIC_* được inline vào bundle lúc build (không đọc lúc runtime).
+# Rỗng = gọi API cùng origin (nginx proxy /api → backend).
+ARG NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 # Build production bundle
 RUN npm run build
 
@@ -54,6 +59,6 @@ ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD wget -qO- http://localhost:3000/api/health 2>/dev/null || exit 1
+    CMD wget -qO- http://127.0.0.1:3000/ > /dev/null 2>&1 || exit 1
 
 CMD ["node", "server.js"]
