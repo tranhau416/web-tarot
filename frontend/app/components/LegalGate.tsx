@@ -94,7 +94,7 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
             aria-describedby="legal-gate-body"
           >
             <div className="flex justify-center mb-5">
-              <BrandMark className="w-14 h-14" />
+              <BrandMark className="w-14 h-14 animate-float" />
             </div>
             <h1 id="legal-gate-title" className="font-display text-3xl font-medium text-light text-center mb-1.5">
               {STRINGS.GATE_TITLE}

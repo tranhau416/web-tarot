@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Baloo_2, Be_Vietnam_Pro, Fraunces, Nunito, VT323 } from "next/font/google";
 import Link from "next/link";
+import AmbientLayer from "./components/AmbientLayer";
 import BrandMark from "./components/BrandMark";
 import LegalGate from "./components/LegalGate";
 import NavLink from "./components/NavLink";
@@ -75,6 +76,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="bg-void text-light antialiased min-h-screen">
+        <AmbientLayer />
         <LegalGate>
           <header className="fixed top-0 left-0 right-0 z-40 border-b border-veil bg-void/90 backdrop-blur-sm">
             <nav

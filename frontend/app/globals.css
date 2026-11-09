@@ -33,6 +33,15 @@
   --animate-fade-in: fadeIn 0.5s ease-out;
   --animate-shimmer: shimmer 1.8s ease-in-out infinite;
   --animate-sheet-up: sheetUp 0.28s ease-out;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-glow: glow 6s ease-in-out infinite;
+  --animate-sway: sway 5s ease-in-out infinite;
+  --animate-twinkle: twinkle 3.2s ease-in-out infinite;
+  --animate-blink: blink 1.4s steps(1, end) infinite;
+  --animate-shoot: shoot 11s ease-in infinite;
+  --animate-rise: rise 16s linear infinite;
+  --animate-fall: fall 18s linear infinite;
+  --animate-deal: deal 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 
   /* === Keyframes === */
   @keyframes fadeIn {
@@ -49,6 +58,53 @@
   @keyframes sheetUp {
     0% { transform: translateY(100%); }
     100% { transform: translateY(0); }
+  }
+
+  /* Hero cards breathing on the table. Tailwind 4 positions with the separate
+     translate/rotate properties, so these transforms add to them. */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-9px); }
+  }
+  @keyframes glow {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-7deg); }
+    50% { transform: rotate(7deg); }
+  }
+
+  /* Ambient layer: stars (night), pixel sparkles rising (pixel), petals falling (daisy) */
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; transform: scale(0.7); }
+    50% { opacity: 0.9; transform: scale(1); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+  @keyframes shoot {
+    0% { opacity: 0; transform: translate(0, 0); }
+    2% { opacity: 1; }
+    9% { opacity: 0; transform: translate(-46vw, 22vh); }
+    100% { opacity: 0; transform: translate(-46vw, 22vh); }
+  }
+  @keyframes rise {
+    0% { opacity: 0; transform: translateY(0); }
+    10%, 85% { opacity: 0.85; }
+    100% { opacity: 0; transform: translateY(-115vh); }
+  }
+  @keyframes fall {
+    0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
+    8%, 88% { opacity: 0.95; }
+    100% { opacity: 0; transform: translate3d(12vw, 115vh, 0) rotate(560deg); }
+  }
+
+  /* Face-down cards dealt onto the board while the draw is in flight */
+  @keyframes deal {
+    0% { opacity: 0; transform: translateY(-28px) scale(0.86); }
+    100% { opacity: 1; transform: none; }
   }
 }
 
