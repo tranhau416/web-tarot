@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Daisy from "@/app/components/Daisy"
 import { STRINGS } from "@/app/lib/strings"
 
 const SIDE = "w-[92px] sm:w-32 lg:w-[172px] top-[22px] sm:top-5 lg:top-[150px]"
@@ -25,6 +26,14 @@ const SPARKLES = [
   "left-[16%] bottom-[4%] h-3 w-3 lg:left-[18%] lg:bottom-[20%] lg:h-4 lg:w-4",
 ]
 
+/** Hoa cúc rải quanh quạt bài — chỉ hiện ở giao diện Cúc hoạ mi. */
+const DAISIES = [
+  "left-[6%] top-[8%] h-9 w-9 -rotate-12 lg:left-[9%] lg:top-[10%] lg:h-14 lg:w-14",
+  "right-[7%] top-[4%] h-7 w-7 rotate-12 lg:right-[10%] lg:top-[13%] lg:h-10 lg:w-10",
+  "right-[12%] bottom-[6%] h-6 w-6 lg:right-[13%] lg:bottom-[20%] lg:h-12 lg:w-12",
+  "left-[14%] bottom-[3%] h-5 w-5 rotate-6 lg:left-[15%] lg:bottom-[18%] lg:h-8 lg:w-8",
+]
+
 /**
  * Ba lá Rider-Waite-Smith xoè quạt. Điện thoại: nằm trên tiêu đề.
  * Desktop: cột phải, đặt trên một "mặt bàn" có quầng sáng vàng nhẹ.
@@ -43,13 +52,16 @@ export default function HeroFan() {
         <div
           key={card.src}
           className={`absolute left-1/2 aspect-[3/5] overflow-hidden rounded-lg lg:rounded-xl
-            shadow-[var(--fan-shadow)] pixel:border-2 pixel:border-mist ${card.className}`}
+            shadow-[var(--fan-shadow)] pixel:border-2 pixel:border-mist daisy:border-4 daisy:border-white ${card.className}`}
         >
           <Image src={card.src} alt="" fill unoptimized priority sizes="216px" className="object-cover" />
         </div>
       ))}
       {SPARKLES.map((s, i) => (
         <PixelSparkle key={i} className={`absolute hidden pixel:block ${s}`} />
+      ))}
+      {DAISIES.map((d, i) => (
+        <Daisy key={i} className={`absolute hidden daisy:block ${d}`} />
       ))}
       <figcaption className="absolute left-7 bottom-6 hidden lg:block text-sm text-silver">
         {STRINGS.HERO_CAPTION}

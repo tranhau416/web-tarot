@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react"
 import { STORAGE_KEYS } from "./constants"
 
-export type ThemeId = "night" | "pixel"
+export type ThemeId = "night" | "pixel" | "daisy"
 
 export interface ThemeOption {
   id: ThemeId
@@ -14,6 +14,7 @@ export interface ThemeOption {
 export const THEMES: ThemeOption[] = [
   { id: "night", name: "Đêm trong", description: "Nền tối, chữ rõ, nhấn vàng" },
   { id: "pixel", name: "Pixel hồng", description: "Hồng pastel, chữ pixel dễ thương" },
+  { id: "daisy", name: "Cúc hoạ mi", description: "Trắng tinh, vàng nắng, xanh lá non" },
 ]
 
 export const DEFAULT_THEME: ThemeId = "night"
@@ -21,7 +22,7 @@ export const DEFAULT_THEME: ThemeId = "night"
 const THEME_EVENT = "tarot-theme-change"
 
 function isTheme(value: unknown): value is ThemeId {
-  return value === "night" || value === "pixel"
+  return THEMES.some((t) => t.id === value)
 }
 
 function readTheme(): ThemeId {

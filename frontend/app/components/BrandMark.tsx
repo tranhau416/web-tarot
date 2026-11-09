@@ -1,11 +1,13 @@
+import Daisy from "@/app/components/Daisy"
+
 /**
- * Logo: trăng lưỡi liềm và ngôi sao; giao diện Pixel hồng thay bằng trái tim pixel.
- * Màu lấy từ token nên tự đổi theo giao diện.
+ * Logo: trăng lưỡi liềm và ngôi sao; giao diện Pixel hồng thay bằng trái tim pixel,
+ * Cúc hoạ mi thay bằng một bông cúc. Màu lấy từ token nên tự đổi theo giao diện.
  */
 export default function BrandMark({ className = "w-7 h-7" }: { className?: string }) {
   return (
     <span className={`block ${className}`} aria-hidden="true">
-      <svg viewBox="0 0 32 32" className="h-full w-full pixel:hidden" fill="none">
+      <svg viewBox="0 0 32 32" className="h-full w-full pixel:hidden daisy:hidden" fill="none">
         <circle cx="16" cy="16" r="14.5" className="stroke-gold" strokeOpacity="0.35" />
         <path d="M20 6 A10 10 0 0 0 20 26 A13 13 0 0 1 20 6 Z" className="fill-gold" />
         <path
@@ -24,6 +26,7 @@ export default function BrandMark({ className = "w-7 h-7" }: { className?: strin
         />
         <path fill="#FFFFFF" d="M2 4h2v1H2zM2 5h1v1H2z" />
       </svg>
+      <Daisy className="hidden h-full w-full daisy:block" />
     </span>
   )
 }

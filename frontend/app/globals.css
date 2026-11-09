@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
-/* Giao diện "Pixel hồng": <html data-theme="pixel">. Mặc định là "night". */
+/* Giao diện "Pixel hồng" / "Cúc hoạ mi": <html data-theme="pixel" | "daisy">. Mặc định là "night". */
 @custom-variant pixel (&:where([data-theme="pixel"], [data-theme="pixel"] *));
+@custom-variant daisy (&:where([data-theme="daisy"], [data-theme="daisy"] *));
 
 @theme {
   /* === Colors: clear night ===
@@ -108,6 +109,37 @@
   --scrim: rgb(74 37 69 / 0.45);
 }
 
+/* === Theme: daisy ("Cúc hoạ mi") ===
+   Cream ground, white petals, sun-yellow buttons, fresh-leaf green for accents that must read as text.
+   Contrast against the ground: text 14.7:1, captions 6.0:1, green accent 4.9:1, dark text on yellow buttons 10.3:1. */
+[data-theme="daisy"] {
+  color-scheme: light;
+  --color-void: #FFFBEA;
+  --color-ink: #FFFFFF;
+  --color-veil: #FFF1BA;
+  --color-mist: #CADBB4;
+  --color-silver: #56664A;
+  --color-pearl: #3F4F35;
+  --color-read: #25321D;
+  --color-light: #1B2914;
+  --color-gold: #2E7D32;
+  --color-gold-soft: #25662A;
+  --color-on-gold: #2A2000;
+  --color-upright: #2E7D32;
+  --color-reversed: #2F55C2;
+  --color-positive: #1B7A44;
+  --color-negative: #C0392B;
+  --daisy-sun: #FFC72C;
+  --daisy-sun-deep: #F5B000;
+
+  --theme-font-body: var(--font-be-vietnam), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --theme-font-display: var(--font-baloo), var(--font-be-vietnam), system-ui, sans-serif;
+  --hero-glow: rgb(255 214 64 / 0.4);
+  --card-shadow: 0 8px 22px rgb(76 110 40 / 0.2);
+  --fan-shadow: 0 16px 36px rgb(76 110 40 / 0.25);
+  --scrim: rgb(27 41 20 / 0.45);
+}
+
 /* === Base Styles === */
 body {
   background-color: var(--color-void);
@@ -204,6 +236,26 @@ html:has(dialog[open]) {
 [data-theme="pixel"] .font-display {
   font-size-adjust: 0.5;
   letter-spacing: 0.02em;
+}
+
+/* === Daisy theme: a sunny meadow of scattered daisies; buttons take the sun yellow ===
+   Filled buttons use the yellow (dark text on it); everything that must read as text,
+   outline or ring keeps --color-gold, the leaf green. */
+[data-theme="daisy"] body {
+  background-image:
+    radial-gradient(60% 45% at 88% 0%, rgb(255 214 64 / 0.28), transparent 70%),
+    url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260"%3E%3Cg fill="%23FFFFFF" stroke="%23ECF0DA" stroke-width="1"%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(0 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(30 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(60 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(90 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(120 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(150 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(180 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(210 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(240 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(270 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(300 52 58)"/%3E%3Cellipse cx="52" cy="48.4" rx="3.8" ry="9.6" transform="rotate(330 52 58)"/%3E%3C/g%3E%3Ccircle cx="52" cy="58" r="5.4" fill="%23FFE89E"/%3E%3Cg fill="%23FFFFFF" stroke="%23ECF0DA" stroke-width="1"%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(0 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(30 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(60 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(90 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(120 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(150 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(180 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(210 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(240 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(270 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(300 196 170)"/%3E%3Cellipse cx="196" cy="163.4" rx="2.6" ry="6.6" transform="rotate(330 196 170)"/%3E%3C/g%3E%3Ccircle cx="196" cy="170" r="3.7" fill="%23FFE89E"/%3E%3Cg fill="%23FFFFFF" stroke="%23ECF0DA" stroke-width="1"%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(0 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(30 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(60 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(90 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(120 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(150 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(180 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(210 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(240 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(270 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(300 118 226)"/%3E%3Cellipse cx="118" cy="221.2" rx="1.9" ry="4.8" transform="rotate(330 118 226)"/%3E%3C/g%3E%3Ccircle cx="118" cy="226" r="2.7" fill="%23FFE89E"/%3E%3C/svg%3E');
+  background-size: auto, 260px 260px;
+  background-attachment: fixed, scroll;
+}
+[data-theme="daisy"] [class~="bg-gold"]:not(:disabled) {
+  background-color: var(--daisy-sun);
+}
+[data-theme="daisy"] [class~="hover:bg-gold-soft"]:not(:disabled):hover {
+  background-color: var(--daisy-sun-deep);
+}
+[data-theme="daisy"] .font-display {
+  letter-spacing: 0;
 }
 
 /* === Reduced motion: no flips, pulses or slides === */

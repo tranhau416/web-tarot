@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Fraunces, Nunito, VT323 } from "next/font/google";
+import { Baloo_2, Be_Vietnam_Pro, Fraunces, Nunito, VT323 } from "next/font/google";
 import Link from "next/link";
 import BrandMark from "./components/BrandMark";
 import LegalGate from "./components/LegalGate";
@@ -44,6 +44,15 @@ const nunito = Nunito({
   preload: false,
 });
 
+// Giao diện Cúc hoạ mi: Baloo 2 tròn, tươi cho tiêu đề; chữ dài vẫn dùng Be Vietnam Pro.
+const baloo = Baloo_2({
+  subsets: ["latin", "vietnamese"],
+  weight: ["500", "600", "700"],
+  variable: "--font-baloo",
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "Sacred Tarot — Trải bài Tarot bằng ngẫu nhiên lượng tử",
   description:
@@ -59,7 +68,7 @@ export default function RootLayout({
     <html
       lang="vi"
       data-theme="night"
-      className={`${beVietnam.variable} ${fraunces.variable} ${vt323.variable} ${nunito.variable}`}
+      className={`${beVietnam.variable} ${fraunces.variable} ${vt323.variable} ${nunito.variable} ${baloo.variable}`}
       suppressHydrationWarning
     >
       <head>
