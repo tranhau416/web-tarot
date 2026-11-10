@@ -53,7 +53,7 @@ Entry point is `main.py` (FastAPI app). All business logic lives under `app/`:
 - **`app/data/vi.py`** — Vietnamese vocabulary (positions, elements, keywords, astrology, timing, dignity) used by the deck metadata, the `*_vi` API fields and the prompts
 - **`app/api/v1/endpoints/`** — `draw.py` (POST `/draw` JSON, POST `/draw/ai-stream` SSE; both use `_perform_draw`) and `cards.py` (GET `/cards`, GET `/cards/{id}`)
 - **`app/services/`**:
-  - `quantum_engine.py` — One entropy fetch per draw (ANU QRNG → Random.org → OS entropy, failed sources skipped for 60s); unbiased partial Fisher–Yates selection
+  - `quantum_engine.py` — Entropy pool: one fetch of `ENTROPY_POOL_BYTES` (1024) serves ~30–45 draws, each byte used once, never mixing sources (ANU QRNG → Random.org → OS entropy, failed sources skipped for 60s; OS entropy is not pooled); unbiased partial Fisher–Yates selection
   - `interpretation_service.py` — Elemental dignities (same element = +1) and decan timing (Ace/Page → season)
   - `ai_reader_service.py` — Provider chain from `providers/` registry: Gemini → Claude → mock. Falls through only on failures before the first token; a mid-stream failure becomes an SSE `error` event
   - `providers/`, `prompts/` — LLM providers (Claude uses `claude-opus-5-5` with server-side refusal fallback, no `temperature`) and shared Vietnamese prompts
@@ -81,7 +81,7 @@ See `backend/.env.example`:
 - `DATABASE_URL` — PostgreSQL async connection string
 - `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY` — LLM providers; `CLAUDE_MODEL`, `CLAUDE_READING_EFFORT` (not `CLAUDE_EFFORT`, which Claude Code itself sets)
 - `TAVILY_API_KEY` — card metadata fetching
-- `ANU_QRNG_URL`, `ANU_API_KEY` — quantum entropy source
+- `ANU_API_KEY`, `ANU_QRNG_URL`, `ENTROPY_POOL_BYTES` — quantum entropy source (empty URL = new API `api.quantumnumbers.anu.edu.au` when a key is set, legacy `qrng.anu.edu.au` otherwise)
 - `AUTO_INIT_DB`, `CORS_ORIGINS`
 
 For Docker, use `.env.docker` as a template.

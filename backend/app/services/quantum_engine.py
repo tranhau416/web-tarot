@@ -12,8 +12,11 @@ Thứ tự ưu tiên entropy:
   2. Random.org    (fallback nếu ANU down)
   3. OS entropy    (secrets — fallback cuối, cryptographically secure)
 
-Mỗi lượt rút chỉ gọi nguồn entropy MỘT lần. Nguồn nào lỗi sẽ bị bỏ qua trong
-một khoảng cooldown để request sau không phải chờ timeout lại.
+Mỗi lần gọi nguồn entropy lấy sẵn ENTROPY_POOL_BYTES byte (mặc định 1024, mức tối đa
+ANU cho một request) vào một bộ đệm trong bộ nhớ; các lượt rút lấy dần từ đó, mỗi byte
+chỉ dùng một lần. Một request đủ cho khoảng 30–45 lượt rút, nên gói miễn phí của ANU
+(~100 request/tháng) dùng được lâu hơn nhiều. Nguồn nào lỗi sẽ bị bỏ qua trong một
+khoảng cooldown để request sau không phải chờ timeout lại.
 """
 
 from __future__ import annotations
@@ -89,17 +92,31 @@ def get_spread_size(spread_type: str) -> int:
 _SOURCE_COOLDOWN_SECONDS = 60.0
 _source_unavailable_until: dict[str, float] = {}
 
+ANU_API_URL = "https://api.quantumnumbers.anu.edu.au"      # cần x-api-key
+ANU_LEGACY_API_URL = "https://qrng.anu.edu.au/API/jsonI.php"  # không key, đang bị thu hẹp dần
+_MAX_BYTES_PER_REQUEST = 1024  # giới hạn length của ANU cho uint8
+
+# Bộ đệm entropy: byte chưa dùng của lần gọi gần nhất và nguồn của chúng
+_pool: list[int] = []
+_pool_source: Optional[str] = None
+
+
+def _anu_url() -> str:
+    if settings.ANU_QRNG_URL:
+        return settings.ANU_QRNG_URL
+    return ANU_API_URL if settings.ANU_API_KEY else ANU_LEGACY_API_URL
+
 
 async def _fetch_from_anu(n: int, client: httpx.AsyncClient) -> list[int]:
     """
     Gọi ANU QRNG API để lấy n bytes ngẫu nhiên.
-    Endpoint: GET {ANU_QRNG_URL}?length={n}&type=uint8
+    Endpoint: GET {url}?length={n}&type=uint8 (API mới và API cũ cùng dạng)
     Response: {"type":"uint8","length":n,"data":[...],"success":true}
     Nếu có ANU_API_KEY (API mới quantumnumbers.anu.edu.au) → gửi header x-api-key.
     """
     headers = {"x-api-key": settings.ANU_API_KEY} if settings.ANU_API_KEY else None
     response = await client.get(
-        settings.ANU_QRNG_URL,
+        _anu_url(),
         params={"length": n, "type": "uint8"},
         headers=headers,
     )
@@ -141,13 +158,25 @@ def _validate_bytes(data: object, n: int) -> list[int]:
     return values
 
 
+def _take_from_pool(n: int) -> tuple[list[int], str]:
+    global _pool
+    data, _pool = _pool[:n], _pool[n:]
+    return data, _pool_source or "os_entropy"
+
+
 async def fetch_quantum_bytes(n: int) -> tuple[list[int], str]:
     """
-    Lấy n random bytes, ưu tiên nguồn lượng tử.
+    Lấy n random bytes, ưu tiên nguồn lượng tử. Lấy từ bộ đệm nếu còn đủ,
+    nếu không thì gọi nguồn entropy một lần cho cả một mẻ byte.
 
     Returns:
         (bytes_list, source) với source là "anu_qrng" | "random_org" | "os_entropy"
     """
+    global _pool, _pool_source
+    if len(_pool) >= n:
+        return _take_from_pool(n)
+
+    batch = min(max(n, settings.ENTROPY_POOL_BYTES), _MAX_BYTES_PER_REQUEST)
     sources = (
         ("anu_qrng", _fetch_from_anu),
         ("random_org", _fetch_from_random_org),
@@ -157,9 +186,13 @@ async def fetch_quantum_bytes(n: int) -> tuple[list[int], str]:
             if time.monotonic() < _source_unavailable_until.get(source, 0.0):
                 continue
             try:
-                data = _validate_bytes(await fetcher(n, client), n)
-                logger.info("Entropy fetched from %s (%d bytes)", source, n)
-                return data, source
+                data = _validate_bytes(await fetcher(batch, client), batch)
+                logger.info("Entropy fetched from %s (%d bytes, %d for this draw)", source, batch, n)
+                # Không trộn byte của hai nguồn khác nhau trong một lượt rút
+                if source != _pool_source:
+                    _pool, _pool_source = [], source
+                _pool.extend(data)
+                return _take_from_pool(n)
             except Exception as exc:
                 _source_unavailable_until[source] = time.monotonic() + _SOURCE_COOLDOWN_SECONDS
                 logger.warning(
@@ -231,7 +264,7 @@ async def draw_cards(
     """
     Rút num_cards lá bài (không lặp) với entropy lượng tử.
 
-    Bố cục entropy (1 lần gọi API):
+    Bố cục entropy (lấy từ bộ đệm, gọi API khi bộ đệm cạn):
       bytes[0:num_cards]  → hướng lá (byte < 128 = upright)
       bytes[num_cards:]   → chọn lá (rejection sampling, có byte dự phòng)
 

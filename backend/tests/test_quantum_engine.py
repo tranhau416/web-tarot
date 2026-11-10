@@ -1,5 +1,6 @@
 import pytest
 
+from app.core.config import settings
 from app.services import quantum_engine
 from app.services.quantum_engine import _select_unique_indices, fetch_quantum_bytes
 
@@ -30,7 +31,7 @@ def test_selection_never_repeats_cards():
 
 async def test_fetch_prefers_anu(monkeypatch):
     async def anu(n, client):
-        return list(range(n))
+        return [i % 256 for i in range(n)]
 
     monkeypatch.setattr(quantum_engine, "_fetch_from_anu", anu)
     data, source = await fetch_quantum_bytes(4)
@@ -63,6 +64,52 @@ async def test_fetch_rejects_out_of_range_values(monkeypatch):
     data, source = await fetch_quantum_bytes(5)
     assert source == "os_entropy"
     assert len(data) == 5
+
+
+async def test_one_fetch_serves_several_draws(monkeypatch):
+    requested = []
+
+    async def anu(n, client):
+        requested.append(n)
+        return list(range(256)) * (n // 256)
+
+    monkeypatch.setattr(quantum_engine, "_fetch_from_anu", anu)
+    first, _ = await fetch_quantum_bytes(22)
+    second, source = await fetch_quantum_bytes(36)
+    assert requested == [settings.ENTROPY_POOL_BYTES]
+    assert source == "anu_qrng"
+    assert first == list(range(22))
+    assert second == list(range(22, 58))  # mỗi byte chỉ dùng một lần
+
+
+async def test_refill_does_not_mix_sources(monkeypatch):
+    async def random_org(n, client):
+        return [9] * n
+
+    monkeypatch.setattr(quantum_engine, "_fetch_from_random_org", random_org)
+    monkeypatch.setattr(quantum_engine, "_pool", [1, 2])
+    monkeypatch.setattr(quantum_engine, "_pool_source", "anu_qrng")
+    data, source = await fetch_quantum_bytes(3)
+    assert (data, source) == ([9, 9, 9], "random_org")
+    assert set(quantum_engine._pool) == {9}
+
+
+async def test_os_fallback_is_not_pooled():
+    data, source = await fetch_quantum_bytes(5)
+    assert source == "os_entropy"
+    assert len(data) == 5
+    assert quantum_engine._pool == []
+
+
+@pytest.mark.parametrize(("url", "key", "expected"), [
+    ("", "k", quantum_engine.ANU_API_URL),
+    ("", "", quantum_engine.ANU_LEGACY_API_URL),
+    ("https://example.test/qrng", "k", "https://example.test/qrng"),
+])
+def test_anu_url_follows_key(monkeypatch, url, key, expected):
+    monkeypatch.setattr(settings, "ANU_QRNG_URL", url)
+    monkeypatch.setattr(settings, "ANU_API_KEY", key)
+    assert quantum_engine._anu_url() == expected
 
 
 @pytest.mark.parametrize(("spread", "size"), [
