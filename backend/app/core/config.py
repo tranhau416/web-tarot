@@ -43,10 +43,12 @@ class Settings(BaseSettings):
     LLM_MAX_OUTPUT_TOKENS: int = 8192    # Gemini (2.5 tính cả token suy nghĩ)
 
     # Quantum RNG
-    ANU_QRNG_URL: str = "https://qrng.anu.edu.au/API/jsonI.php"
-    # API mới (https://quantumnumbers.anu.edu.au) cần key — đặt kèm ANU_QRNG_URL tương ứng
+    # Để trống = tự chọn: có ANU_API_KEY → API mới (api.quantumnumbers.anu.edu.au), không có → API cũ
+    ANU_QRNG_URL: str = ""
     ANU_API_KEY: str = ""
     ENTROPY_TIMEOUT_SECONDS: float = 4.0
+    # Mỗi lần gọi nguồn entropy lấy sẵn chừng này byte (tối đa 1024) rồi chia dần cho các lượt rút
+    ENTROPY_POOL_BYTES: int = 1024
 
     # HTTP
     # Danh sách origin cho CORS, phân tách bằng dấu phẩy (dev: Next.js chạy port 3000)

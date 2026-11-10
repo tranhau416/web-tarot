@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Fraunces, Nunito, VT323 } from "next/font/google";
+import { Baloo_2, Be_Vietnam_Pro, Fraunces, Nunito, VT323 } from "next/font/google";
 import Link from "next/link";
+import AmbientLayer from "./components/AmbientLayer";
 import BrandMark from "./components/BrandMark";
 import LegalGate from "./components/LegalGate";
 import NavLink from "./components/NavLink";
@@ -44,6 +45,15 @@ const nunito = Nunito({
   preload: false,
 });
 
+// Giao diện Cúc hoạ mi: Baloo 2 tròn, tươi cho tiêu đề; chữ dài vẫn dùng Be Vietnam Pro.
+const baloo = Baloo_2({
+  subsets: ["latin", "vietnamese"],
+  weight: ["500", "600", "700"],
+  variable: "--font-baloo",
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "Sacred Tarot — Trải bài Tarot bằng ngẫu nhiên lượng tử",
   description:
@@ -59,13 +69,14 @@ export default function RootLayout({
     <html
       lang="vi"
       data-theme="night"
-      className={`${beVietnam.variable} ${fraunces.variable} ${vt323.variable} ${nunito.variable}`}
+      className={`${beVietnam.variable} ${fraunces.variable} ${vt323.variable} ${nunito.variable} ${baloo.variable}`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="bg-void text-light antialiased min-h-screen">
+        <AmbientLayer />
         <LegalGate>
           <header className="fixed top-0 left-0 right-0 z-40 border-b border-veil bg-void/90 backdrop-blur-sm">
             <nav

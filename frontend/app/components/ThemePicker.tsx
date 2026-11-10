@@ -1,5 +1,6 @@
 "use client"
 
+import Daisy from "@/app/components/Daisy"
 import { STRINGS } from "@/app/lib/strings"
 import { THEMES, setTheme, useTheme, type ThemeId } from "@/app/lib/theme"
 
@@ -18,6 +19,18 @@ export function PixelHeart({ className = "", fill = "#C2185B" }: { className?: s
 
 /** Ảnh thu nhỏ của mỗi giao diện, vẽ bằng màu cố định để luôn đúng với giao diện nó đại diện. */
 export function ThemePreview({ id }: { id: ThemeId }) {
+  if (id === "daisy") {
+    return (
+      <span aria-hidden="true" className="relative block h-16 overflow-hidden rounded-lg border border-[#CADBB4] bg-[#FFFBEA]">
+        <span className="absolute left-2.5 top-2.5 flex h-9 w-[58%] flex-col gap-1.5 rounded-md border border-[#CADBB4] bg-white p-1.5">
+          <span className="block h-1.5 w-4/5 rounded-full bg-[#1B2914]" />
+          <span className="block h-1.5 w-1/2 rounded-full bg-[#FFC72C]" />
+        </span>
+        <Daisy className="absolute right-2 top-2.5 h-9 w-9" />
+        <Daisy className="absolute right-9 bottom-0.5 h-4 w-4" />
+      </span>
+    )
+  }
   if (id === "pixel") {
     return (
       <span
@@ -52,7 +65,7 @@ export default function ThemePicker() {
   return (
     <fieldset className="min-w-0">
       <legend className="mb-2.5 text-[15px] font-semibold text-light">{STRINGS.THEME_LABEL}</legend>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-2.5 sm:grid-cols-3 sm:gap-3">
         {THEMES.map((option) => {
           const selected = theme === option.id
           return (
@@ -66,13 +79,16 @@ export default function ThemePicker() {
                 className="peer sr-only"
               />
               <span
-                className={`flex h-full flex-col gap-2 rounded-xl border-[1.5px] p-2.5 text-left transition-colors
+                className={`grid h-full grid-cols-[6.5rem_1fr] items-center gap-x-3 gap-y-0.5 rounded-xl border-[1.5px] p-2.5 text-left transition-colors
+                  sm:flex sm:flex-col sm:items-stretch sm:gap-2
                   peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-gold
                   ${selected ? "border-gold bg-gold/[0.08] pixel:pixel-shadow-sm" : "border-mist hover:border-pearl/40"}`}
               >
-                <ThemePreview id={option.id} />
-                <span className="text-[15px] font-semibold text-light">{option.name}</span>
-                <span className="text-sm leading-snug text-pearl">{option.description}</span>
+                <span className="row-span-2">
+                  <ThemePreview id={option.id} />
+                </span>
+                <span className="self-end sm:self-auto text-[15px] font-semibold text-light">{option.name}</span>
+                <span className="self-start sm:self-auto text-sm leading-snug text-pearl">{option.description}</span>
               </span>
             </label>
           )
@@ -82,10 +98,10 @@ export default function ThemePicker() {
   )
 }
 
-/** Nút trên thanh điều hướng: đổi qua lại giữa hai giao diện. */
+/** Nút trên thanh điều hướng: chuyển lần lượt qua các giao diện. */
 export function ThemeToggle() {
   const theme = useTheme()
-  const next = THEMES.find((t) => t.id !== theme) ?? THEMES[0]
+  const next = THEMES[(THEMES.findIndex((t) => t.id === theme) + 1) % THEMES.length]
   return (
     <button
       type="button"
@@ -97,6 +113,8 @@ export function ThemeToggle() {
     >
       {next.id === "pixel" ? (
         <PixelHeart className="h-5 w-5" />
+      ) : next.id === "daisy" ? (
+        <Daisy className="h-5 w-5" />
       ) : (
         <svg viewBox="0 0 32 32" className="h-5 w-5" aria-hidden="true">
           <circle cx="16" cy="16" r="15" fill="#0E1015" />

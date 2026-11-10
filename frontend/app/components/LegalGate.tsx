@@ -87,14 +87,14 @@ export default function LegalGate({ children }: { children: React.ReactNode }) {
       {!confirmed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-void/80 backdrop-blur-sm px-4 py-6">
           <div
-            className="bg-ink border border-mist rounded-[20px] p-6 sm:p-8 max-w-md w-full shadow-2xl pixel:pixel-shadow-lg animate-fade-in"
+            className="bg-ink border border-mist rounded-[20px] p-6 sm:p-8 max-w-md sm:max-w-xl w-full shadow-2xl pixel:pixel-shadow-lg animate-fade-in"
             role="dialog"
             aria-modal="true"
             aria-labelledby="legal-gate-title"
             aria-describedby="legal-gate-body"
           >
             <div className="flex justify-center mb-5">
-              <BrandMark className="w-14 h-14" />
+              <BrandMark className="w-14 h-14 animate-float" />
             </div>
             <h1 id="legal-gate-title" className="font-display text-3xl font-medium text-light text-center mb-1.5">
               {STRINGS.GATE_TITLE}

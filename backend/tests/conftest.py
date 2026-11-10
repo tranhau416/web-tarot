@@ -35,6 +35,8 @@ def offline_entropy(monkeypatch):
     monkeypatch.setattr(quantum_engine, "_fetch_from_anu", unavailable)
     monkeypatch.setattr(quantum_engine, "_fetch_from_random_org", unavailable)
     monkeypatch.setattr(quantum_engine, "_source_unavailable_until", {})
+    monkeypatch.setattr(quantum_engine, "_pool", [])
+    monkeypatch.setattr(quantum_engine, "_pool_source", None)
 
 
 @pytest.fixture(autouse=True)

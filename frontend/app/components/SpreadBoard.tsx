@@ -120,10 +120,21 @@ const CardSlot = memo(function CardSlot({ index, card, label, crossing, style, i
     zIndex: crossing ? 2 : 1,
   }
 
+  // Lá úp được "chia" lần lượt lên bàn khi bắt đầu rút (chỉ lúc chưa có kết quả, để không chia lại khi lá
+  // chuyển thành nút); lớp bọc riêng để không đè transform của lá cắt ngang / lật
+  const dealt = (
+    <span
+      className={`absolute inset-0 block ${card ? "" : "animate-deal"}`}
+      style={card ? undefined : { animationDelay: `${index * 70}ms` }}
+    >
+      {inner}
+    </span>
+  )
+
   if (!card) {
     return (
       <span aria-hidden="true" className="absolute block" style={{ ...position, perspective: "900px" }}>
-        {inner}
+        {dealt}
         {badge}
       </span>
     )
@@ -140,7 +151,7 @@ const CardSlot = memo(function CardSlot({ index, card, label, crossing, style, i
         ${isSelected ? "ring-2 ring-gold ring-offset-[3px] ring-offset-void lg:ring-offset-ink" : ""}`}
       style={{ ...position, perspective: "900px" }}
     >
-      {inner}
+      {dealt}
       {badge}
     </button>
   )

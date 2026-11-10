@@ -6,7 +6,7 @@
 
 ## ✨ Tính năng
 
-- **Quantum RNG** — Entropy thật từ [ANU Quantum RNG](https://qrng.anu.edu.au/), fallback Random.org → OS secrets
+- **Quantum RNG** — Entropy thật từ [ANU Quantum Numbers](https://quantumnumbers.anu.edu.au/) (đặt `ANU_API_KEY`; mỗi request lấy sẵn 1024 byte cho ~30–45 lượt rút), fallback Random.org → OS secrets
 - **4 loại trải bài** — Single, Three Card, Horseshoe (7 lá), Celtic Cross (10 lá)
 - **Elemental Dignities** — Tính tương tác nguyên tố theo truyền thống Golden Dawn
 - **Bộ bài đầy đủ 78 lá** — Tên tiếng Việt, keywords thuận/ngược, nguyên tố & decan theo Golden Dawn (seed tự động)

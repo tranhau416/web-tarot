@@ -55,8 +55,9 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       CLAUDE_MODEL:    ${CLAUDE_MODEL:-claude-opus-5-5}
       CLAUDE_READING_EFFORT: ${CLAUDE_READING_EFFORT:-medium}
-      ANU_QRNG_URL:    ${ANU_QRNG_URL:-https://qrng.anu.edu.au/API/jsonI.php}
+      ANU_QRNG_URL:    ${ANU_QRNG_URL:-}
       ANU_API_KEY:     ${ANU_API_KEY:-}
+      ENTROPY_POOL_BYTES: ${ENTROPY_POOL_BYTES:-1024}
       SECRET_KEY:      ${SECRET_KEY:-change-this-in-production}
       APP_ENV:         ${APP_ENV:-production}
     depends_on:
