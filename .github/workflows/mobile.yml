@@ -38,7 +38,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       # Bundles every screen, the shared frontend modules and the card images through Metro
-      - run: npx expo export --platform web --output-dir /tmp/web-export
+      - run: npx expo export --platform android --platform web --output-dir /tmp/expo-export
         env:
           EXPO_PUBLIC_API_URL: https://example.invalid
 
