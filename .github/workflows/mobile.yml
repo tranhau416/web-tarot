@@ -1,0 +1,79 @@
+name: Android app
+
+on:
+  push:
+    branches: [main, master, android-app]
+    paths:
+      - "mobile/**"
+      - "frontend/app/lib/**"
+      - "frontend/public/cards/**"
+      - ".github/workflows/mobile.yml"
+  pull_request:
+    paths:
+      - "mobile/**"
+      - "frontend/app/lib/**"
+      - "frontend/public/cards/**"
+      - ".github/workflows/mobile.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, tests & bundle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      # Bundles every screen, the shared frontend modules and the card images through Metro
+      - run: npx expo export --platform web --output-dir /tmp/web-export
+        env:
+          EXPO_PUBLIC_API_URL: https://example.invalid
+
+  apk:
+    name: Build APK
+    needs: check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      # Backend address baked into the app: set the repository variable MOBILE_API_URL
+      # (Settings → Secrets and variables → Actions → Variables), e.g. https://tarot.example.com
+      EXPO_PUBLIC_API_URL: ${{ vars.MOBILE_API_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: npm ci
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install
+      - name: Assemble release APK
+        working-directory: mobile/android
+        # Release build signed with the debug key from the Expo template: installable for testing,
+        # not for Google Play (that needs your own upload key).
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sacred-tarot-apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error

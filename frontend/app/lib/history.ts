@@ -50,9 +50,9 @@ function persist(entries: HistoryEntry[]) {
   }
 }
 
-export function saveReading(draw: DrawResponse, intention: string | undefined, text: string) {
-  if (!text.trim()) return
-  const entry: HistoryEntry = {
+/** Một lần đọc đã xong → mục lịch sử (dùng chung cho web và app Android). */
+export function buildHistoryEntry(draw: DrawResponse, intention: string | undefined, text: string): HistoryEntry {
+  return {
     id: draw.session_id,
     createdAt: new Date().toISOString(),
     spreadType: draw.interpretation.spread_type,
@@ -66,7 +66,16 @@ export function saveReading(draw: DrawResponse, intention: string | undefined, t
     })),
     text,
   }
-  persist([entry, ...loadHistory().filter((e) => e.id !== entry.id)])
+}
+
+/** Đưa mục mới lên đầu, bỏ bản cũ cùng id, giữ tối đa MAX_ENTRIES mục. */
+export function addToHistory(entries: HistoryEntry[], entry: HistoryEntry): HistoryEntry[] {
+  return [entry, ...entries.filter((e) => e.id !== entry.id)].slice(0, MAX_ENTRIES)
+}
+
+export function saveReading(draw: DrawResponse, intention: string | undefined, text: string) {
+  if (!text.trim()) return
+  persist(addToHistory(loadHistory(), buildHistoryEntry(draw, intention, text)))
 }
 
 export function clearHistory() {

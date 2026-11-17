@@ -1,0 +1,29 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@shared/*": [
+        "../frontend/app/lib/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../frontend/app/lib/types.ts",
+    "../frontend/app/lib/constants.ts",
+    "../frontend/app/lib/strings.ts",
+    "../frontend/app/lib/spreadLayouts.ts",
+    "../frontend/app/lib/history.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "android",
+    "ios"
+  ]
+}
